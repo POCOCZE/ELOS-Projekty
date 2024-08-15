@@ -2,11 +2,11 @@
 # Creates N number of users with same password for all of them
 # Directory .ssh will be created for all of the users with public/private keys
 # Created by simon
-# Date 2024/8/8 - Y/M/D
+# Date 2024/8/9 - Y/M/D
 
 #Variables:
 LOGFILE=/var/log/log.txt
-USERNAME=user
+USERNAME=test0
 PASSWD=student
 PERMISSIONLEVEL=600
 # ---------------------------------------
@@ -58,6 +58,9 @@ for ((i=1; i<=$NUMUSERS; i++)); do
 		echo "[ERROR] Unable to set permissions for private key" >> $LOGFILE
 		exit 1
 	fi
+
+	# Change the ownership of the .ssh folder to $USERNAME
+	chown -R $USERNAME${i}:$USERNAME${i} /home/$USERNAME${i}/.ssh
 done
 
 echo "Successfully created $NUMUSERS users."
