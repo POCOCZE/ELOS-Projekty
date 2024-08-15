@@ -2,11 +2,11 @@
 # Creates N number of users with same password for all of them
 # Directory .ssh will be created for all of the users with public/private keys
 # Created by simon
-# Date 2024/8/12 - Y/M/D
+# Date 2024/8/13 - Y/M/D
 
 #Variables to change:
 LOGFILE=/var/log/log.txt
-USERNAME=test0
+USERNAME=tom
 PASSWD=student
 PERMISSIONLEVEL=600
 
@@ -14,6 +14,7 @@ PERMISSIONLEVEL=600
 echo "--- CREATE MULTIPLE USERS ---"
 echo
 
+#infinite loop
 while : ; do
 
 	echo "Enter number of users to create:"
@@ -28,13 +29,15 @@ while : ; do
 	echo >> $LOGFILE
 
 	# Check whether the input number is positive
-	if [ $NUMUSERS -le 0 ]; then
-		echo "[ERROR] Input number is not a positive!" >> $LOGFILE
+	# Implemented regex - regular expression - checks whether input read number is positive integer
+	# e.g.: Numbers like 1.5, 01, abc will make an error message to appear on screen
+	if [[ "$NUMUSERS" =~ ^[1-9][0-9]*$ ]]; then
+		echo "[ERROR] Input number is not a positive!"
 		continue
 	fi
 
 	# lLoop to iterate over the number of users set by user
-	for ((i=1; i<=$NUMUSERS; i++)); do
+	for ((i=1; i<=NUMUSERS; i++)); do # The dollar sign can be ommited there
 		
 		echo "[INFO] ${i} User: $USERNAME${i}" >> $LOGFILE
 
@@ -47,12 +50,7 @@ while : ; do
 		fi
 		
 		# Create .ssh dir and generate there keys
-		# mkdir -p /home/$USERNAME${i}/.ssh
-		# ssh-keygen -t rsa -N "" -f /home/$USERNAME${i}/.ssh/sshkey
-		# echo "[INFO] Crated directory .ssh" >> $LOGFILE
-		# echo "[INFO] Created public/private keys" >> $LOGFILE
-
-		if mkdir -p /home/$USERNAME${i}/.ssh && ssh-keygen -t rsa -N "" -f /home/$USERNAME${i}/.ssh/sshkey; then
+		if mkdir -p /home/$USERNAME${i}/.ssh && ssh-keygen -t rsa -N "" -f /home/$USERNAME${i}/.ssh/sshkey > /dev/null; then # special file that discards any input
 			echo "[INFO] Created directory .ssh and generated keys" >> $LOGFILE
 		else
 			echo "[ERROR] Unable to create .ssh directory or generate keys" >> $LOGFILE
@@ -74,9 +72,13 @@ while : ; do
 			echo "[ERROR] Unable to change ownership of the .ssh forder" >> $LOGFILE
 			exit 1
 		fi
+
 	done
+
+	# End the while loop and jump out
+	break
 done
 
-echo "Successfully created $NUMUSERS users."
+echo "Successfully created $NUMUSERSs users."
 echo
 echo "Script ended"
