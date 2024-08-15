@@ -4,60 +4,117 @@
 # Created by simon
 # Date 2024/8/8 - Y/M/D
 
-#Variables:
+# Lower cammel case is used for changing variables to store data for a limited time
+# E.g.: username
+# Capital case is used to Constants and env variables
+# E.g.: USERNAME, PASSWD, ...
+
+##-----------##
+## Variables ##
+##-----------##
+
 LOGFILE=/var/log/log.txt
-USERNAME=user
+USERNAME=tom
 PASSWD=student
 PERMISSIONLEVEL=600
-# ---------------------------------------
 
+##-----------##
+## Functions ##
+##-----------##
+
+# Log message into file
+log_message() {
+    local message="$1"
+    echo "$message" >> $LOGFILE
+}
+
+# Create new user
+create_user() {
+    local username="$1"
+    if useradd -m $username && echo "$username:$PASSWD" | chpasswd; then
+        log_message "[INFO] Created new user $username"
+    else
+        log_message "[ERROR] Unable to create user and password"
+        exit 1
+    fi
+}    
+
+# Create .ssh dir and generate there keys
+# dir /dev/null is a special file that discards any input
+create_ssh_dir_and_keys() {
+    local username="$1"
+    if mkdir -p /home/$username/.ssh && ssh-keygen -t rsa -N "" -f /home/$username/.ssh/sshkey > /dev/null; then
+        log_message "[INFO] Created directory .ssh and generated keys"
+    else
+        log_message "[ERROR] Unable to create .ssh directory or generate keys"
+        exit 1
+    fi
+}
+
+# Permissions for private key
+set_permissions_priv_key() {
+    local username="$1"
+    if chmod $PERMISSIONLEVEL /home/$username/.ssh/sshkey; then
+        log_message "[INFO] Set permissions for private key file"
+    else
+        log_message "[ERROR] Unable to set permissions for private key"
+        exit 1
+    fi
+}
+
+# Change the ownership of the .ssh folder to $USERNAME
+change_ssh_dir_owner() {
+    local username="$1"
+    if sudo chown -R $username:$username /home/$username/.ssh; then
+        log_message "[INFO] Changed ownership of the .ssh forder"
+    else
+        log_message "[ERROR] Unable to change ownership of the .ssh forder"
+        exit 1
+    fi
+}
+
+##------##
+## Main ##
+##------##
+
+# Create a log file, write info and create basic structure
+touch $LOGFILE
+log_message "# ------------------------------------------------"
+log_message "Date: $(date)"
+log_message ""
+
+# Write to user
 echo "--- CREATE MULTIPLE USERS ---"
 echo
 
-echo "Enter number of users to create:"
-read NUMUSERS
+while : ; do
+	echo "Enter number of users to create:"
+	read NUMUSERS
 
-#Create a log file, write info a create basic structure
-touch $LOGFILE
-echo "# Date: " >> $LOGFILE
-echo "$(date)" >> $LOGFILE
-echo >> $LOGFILE
-echo "# --------------------------------" >> $LOGFILE
-echo >> $LOGFILE
-
-# lLoop to iterate over the number of users set by user
-for ((i=1; i<=$NUMUSERS; i++)); do
-	
-	echo "[INFO] ${i} User: $USERNAME${i}" >> $LOGFILE
-
-	# Create new user
-	if useradd -m $USERNAME${i} && echo "$USERNAME${i}:$PASSWD" | chpasswd; then
-		echo "[INFO] Created new user $USERNAME${i}\n" >> $LOGFILE
-	else
-		echo "[ERROR] Unable to create user and password" >> $LOGFILE
-		exit 1
-	fi
-	
-	# Create .ssh dir and generate there keys
-	# mkdir -p /home/$USERNAME${i}/.ssh
-	# ssh-keygen -t rsa -N "" -f /home/$USERNAME${i}/.ssh/sshkey
-	# echo "[INFO] Crated directory .ssh" >> $LOGFILE
-	# echo "[INFO] Created public/private keys" >> $LOGFILE
-
-	if mkdir -p /home/$USERNAME${i}/.ssh && ssh-keygen -t rsa -N "" -f /home/$USERNAME${i}/.ssh/sshkey; then
-		echo "[INFO] Created directory .ssh and generated keys" >> $LOGFILE
-	else
-		echo "[ERROR] Unable to create .ssh directory or generate keys" >> $LOGFILE
-		exit 1
+	# Check whether the input number is positive
+	# Implemented regex - regular expression - checks whether input read number is positive integer
+	# e.g.: Numbers like 1.5, 01, abc will make an error message to appear on screen
+	if [[ ! "$NUMUSERS" =~ ^[1-9][0-9]*$ ]]; then
+		echo "[ERROR] Input number is not a positive integer!"
+        echo
+        echo
+        # Skip current iteration and move the next
+		continue
 	fi
 
-	# Permissions for private key
-	if chmod $PERMISSIONLEVEL /home/$USERNAME${i}/.ssh/sshkey; then
-		echo "[INFO] Set permissions for private key file" >> $LOGFILE
-	else
-		echo "[ERROR] Unable to set permissions for private key" >> $LOGFILE
-		exit 1
-	fi
+	# Loop to iterate over the number of users set by user
+    # Dolar sign can be ommited because of aritmetic context in the condition
+	for ((i=1; i<=NUMUSERS; i++)); do
+        username=$USERNAME$i
+        log_message "[INFO] ${i} User: $username"
+
+        create_user $username
+        create_ssh_dir_and_keys $username
+        set_permissions_priv_key $username
+        change_ssh_dir_owner $username
+	done
+	# End the while loop and jump out
+	break
 done
 
 echo "Successfully created $NUMUSERS users."
