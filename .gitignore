@@ -1,1 +1,9 @@
-
+/__pycache__
+/Python-web-app-01/__pycache__
+/Python-web-app-01/bin
+/Python-web-app-01/include
+/Python-web-app-01/lib
+/Python-web-app-01/node_modules
+/Python-web-app-01/package-lock.json
+/Python-web-app-01/package.json
+/Python-web-app-01/myvenv.cfg
