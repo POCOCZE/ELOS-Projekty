@@ -8,7 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
 </head>
-<body class="bg-no-repeat bg-cover bg-center min-h-screen" style="background-image: url('{{ url_for('static', filename='images/background.jpeg') }}');">
+<body style="background-image: url('../static/images/background.jpeg'); background-repeat: no-repeat; background-size: cover; background-position: center; min-height: 100vh;">
     <div class="container mx-auto px-4 py-8 bg-black bg-opacity-50 backdrop-filter backdrop-blur-md rounded-lg shadow-lg mt-8">
         <!-- <h1 class="text-4xl font-bold text-center mb-8 text-gradient">Welcome to ELOS!</h1> -->
         <!-- <h1 class="text-5xl inline-block font-bold text-center mb-8 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-green-500 to-indigo-400">Welcome to ELOS!</h1> -->
