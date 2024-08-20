@@ -13,3 +13,9 @@ Contains hello-world app that uses archetype or skeleton of the app
 1. The app will then be compiled, unit tested, locally tested first
 2. Next we will use containers to pack the app up, create executable image
 3. After that run it on some container orchestrator - K8s/OpenShift
+
+---
+
+### What i wanna do next?
+
+Create a Helm chart for that container and run it on my kuberentes infrastructure!
