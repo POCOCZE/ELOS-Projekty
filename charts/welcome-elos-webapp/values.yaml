@@ -43,13 +43,15 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
-# Can be ClusterIP or Loadbalancer or NodePort
+# Can be ClusterIP or LoadBalancer or NodePort
 service:
   type: ClusterIP
-  port: 80 # exposed port to outside world
-  targetPort: 8080 # port to route traffic from Service to container
-  protocol: TCP
-  LoadBalancerIP: # 192.168.1.100
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+    protocol: TCP
+  loadBalancerIP: # 192.168.1.100
   annotations: {}
 
 ingress:
