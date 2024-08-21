@@ -1,5 +1,6 @@
 # Values files for Welcome-ELOS-WebApp
 # This app does not need any database.
+# This web app is created by Flask but ran by gunicorn.
 # Just run the chart and access the pod from predefined address <LoadBalancerIP>:8080.
 # Created by simon
 # Date: 2024/8/21
