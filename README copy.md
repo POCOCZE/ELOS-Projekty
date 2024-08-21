@@ -1,1 +1,0 @@
-# This repo is used to temporarilly save and store ELOS projects i am currently working/worked on.

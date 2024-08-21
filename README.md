@@ -6,7 +6,7 @@ Contains bash script to create N number of users. You can set there user names a
 Creates ssh directory and generates public/private key pair
 Changes ownership of .ssh dir so keys will own the user.
 
-## Python-web-app-01
+## Welcome-ELOS-WebApp
 
 Contains hello-world app that uses archetype or skeleton of the app
 
@@ -17,5 +17,14 @@ Contains hello-world app that uses archetype or skeleton of the app
 ---
 
 ### What i wanna do next?
+
+### How to create a Helm Chart
+
+#### MacOs
+
+```bash
+brew install helm
+create welcome-elos-webapp
+```
 
 Create a Helm chart for that container and run it on my kuberentes infrastructure!
