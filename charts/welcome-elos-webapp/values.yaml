@@ -46,11 +46,9 @@ securityContext: {}
 # Can be ClusterIP or LoadBalancer or NodePort
 service:
   type: ClusterIP
-  ports:
-  - name: http
-    port: 80
-    targetPort: 8080
-    protocol: TCP
+  port: 80
+  targetPort: 8080
+  protocol: TCP
   loadBalancerIP: # 192.168.1.100
   annotations: {}
 
@@ -81,11 +79,11 @@ resources: {}
 livenessProbe:
   httpGet:
     path: /
-    port: http
+    port: 80
 readinessProbe:
   httpGet:
     path: /
-    port: http
+    port: 80
 
 nodeSelector: {}
 
