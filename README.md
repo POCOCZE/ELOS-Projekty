@@ -16,15 +16,17 @@ Contains hello-world app that uses archetype or skeleton of the app
 
 ---
 
-### What i wanna do next?
-
 ### How to create a Helm Chart
 
 #### MacOs
 
 ```bash
 brew install helm
-create welcome-elos-webapp
+mkdir helm-charts/
+cd helm-charts/
+helm create welcome-elos-webapp
 ```
+
+### What i wanna do next?
 
 Create a Helm chart for that container and run it on my kuberentes infrastructure!
