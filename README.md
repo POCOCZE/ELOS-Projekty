@@ -7,7 +7,7 @@
 - For production use cases switched to Gunicorn
 - Unit tested the app if basic root and paths works - if yes print OK
 - Created Dockerfile with requirements.txt file
-- Built Docker image by using `docker build` 
+- Built Docker image by using `docker build`
 - Checked for vulnerabilities with Docker Scout
 - Spinned up the container with `Docker run` to test if everything works
 - Created how to create and work with Helm Charts - create Helm Chart
@@ -48,4 +48,4 @@ helm create welcome-elos-webapp
 
 #### I dont know :D
 
-#### I will try to find something quickly...
+#### I will try to find something quickly
