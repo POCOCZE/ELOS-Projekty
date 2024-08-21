@@ -8,7 +8,7 @@
 replicaCount: 3
 
 image:
-  repository: poco/python-hello-elos
+  repository: pococze/python-hello-elos
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
