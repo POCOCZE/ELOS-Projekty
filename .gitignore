@@ -15,10 +15,6 @@ python/welcome-elos-webapp/package-lock.json
 python/welcome-elos-webapp/package.json
 python/welcome-elos-webapp/tailwind.config.js
 
-# Helm-charts
-charts/welcome-elos-webapp/templates/NOTES.txt
-charts/welcome-elos-webapp/templates/_helpers.tpl
-
 # Python
 __pycache__/
 *.py[cod]

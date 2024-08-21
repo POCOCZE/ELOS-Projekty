@@ -21,7 +21,6 @@
 
 #Common log files
 *.log
-NOTES.txt
 
 # Various IDEs
 .project
