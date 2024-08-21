@@ -26,5 +26,3 @@ Contains hello-world app that uses archetype or skeleton of the app
 brew install helm
 create welcome-elos-webapp
 ```
-
-Create a Helm chart for that container and run it on my kuberentes infrastructure!
