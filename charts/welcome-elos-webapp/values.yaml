@@ -2,6 +2,7 @@
 # This app does not need any database.
 # Just run the chart and access the pod from predefined address <LoadBalancerIP>:8080.
 # Created by simon
+# Date: 2024/8/21
 
 
 replicaCount: 3
