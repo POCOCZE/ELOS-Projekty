@@ -15,7 +15,7 @@
 - Created CI/CD pipeline to automatically create release of helm charts!
 - Ran the WebApp by using my own Helm Chart on my kubernetes cluster!
 
-# Accessible through this link: [Welcome-ELOS-WebApp](elos.exprt.fun)
+# Accessible through this link: [Welcome-ELOS-WebApp](https://elos.exprt.fun)
 
 ## Bash
 
