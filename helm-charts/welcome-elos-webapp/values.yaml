@@ -1,6 +1,7 @@
 # Values files for Welcome-ELOS-WebApp
 # This app does not need any database.
 # Just run the chart and access the pod from predefined address <LoadBalancerIP>:8080.
+# Created by simon
 
 
 replicaCount: 3
