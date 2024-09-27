@@ -1,0 +1,23 @@
+- name: Timezone Set
+  hosts: "*"
+  become: true
+  tasks:
+    - name: Set The Timezone
+      shell: timedatectl set-timezone Europe/Prague
+
+    
+    - name: Stop The Timezone Service
+      systemd:
+        name: systemd-timesyncd.service
+        state: stopped
+
+    
+    - name: Copy the Timezone Files To The Remote Hosts
+      template: src=../templates/timesyncd.conf dest=/etc/systemd/timesyncd.conf
+
+    - name: Start The Timezone Service
+      systemd:
+        name: systemd-timesyncd.service
+        state: started
+
+        

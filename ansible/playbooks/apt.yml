@@ -1,0 +1,8 @@
+
+- hosts: "*"
+  become: yes # become sudo?
+  tasks:
+    - name: apt
+      apt:
+        update_cache: yes
+        upgrade: 'yes'

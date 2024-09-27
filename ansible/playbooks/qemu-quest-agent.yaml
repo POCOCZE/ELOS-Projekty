@@ -1,0 +1,9 @@
+- name: install latest qemu guest agent # Name of playbook
+  hosts: "*" # Specify hosts the playbook will run on
+  tasks: # List of tasks the playbook will execute
+    - name: install qemu-guest-agent # Name of the task
+      apt: # This is a module to perform instalation
+        name: qemu-guest-agent # apt install qemu-guest-agent
+        state: present # Desired state of the package, it should be instaled
+        update_cache: true # Update package cache before instalation, ensure latest packages available
+      become: true # run as sudo

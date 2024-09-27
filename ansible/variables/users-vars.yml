@@ -1,0 +1,5 @@
+script_destination: /home/poco/
+script_name: create-users.sh
+users_count: 5
+username: dr-johny
+password: student

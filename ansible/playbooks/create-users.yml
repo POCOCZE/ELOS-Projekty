@@ -1,0 +1,37 @@
+- name: Create X number of users with SSL keys
+  hosts: "ansible-test-only"
+  become: true
+
+  vars_files:
+    - ../variables/users-vars.yml
+
+  tasks:
+    - name: Download script from github
+      get_url:
+        url: https://raw.githubusercontent.com/POCOCZE/ELOS-Projekty/refs/heads/master/bash/{{ script_name }}
+        dest: "{{ script_destination }}/{{ script_name }}"
+        mode: '0755'
+
+    - name: Change username in the script
+      replace:
+        path: "{{ script_destination }}/{{ script_name }}"
+        regexp: 'USERNAME=.*'
+        replace: 'USERNAME={{ username }}'
+
+    - name: Change password in the script if needed
+      replace:
+        path: "{{ script_destination }}/{{ script_name }}"
+        regexp: 'PASSWD=.*'
+        replace: 'PASSWD={{ password }}'
+
+    - name: Run the script
+      become: true
+      expect:
+        command: "bash {{ script_destination }}/{{ script_name }}"
+        responses:
+          "Enter number of users to create:": "{{ users_count }}"
+
+    - name: Delete the script
+      file:
+        path: "{{ script_destination }}/{{ script_name }}"
+        state: absent # deletes the file
