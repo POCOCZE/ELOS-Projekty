@@ -1,4 +1,7 @@
-# Python project
+# Ansible Project
+# ansible/hosts.ini
+
+# Python Project
 python/welcome-elos-webapp/bin/Activate.ps1
 python/welcome-elos-webapp/bin/activate
 python/welcome-elos-webapp/bin/activate.csh
