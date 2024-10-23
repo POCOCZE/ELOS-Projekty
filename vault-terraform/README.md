@@ -28,7 +28,7 @@ Základní konfigurace Vault serveru pomocí `config.hcl`:
 
 Terraform konfigurace pro správu secrets pomocí `main.tf`:
 
-- Nastavuje poskytovatele na HC Vault
+- Nastavuje poskytovatele (Provider) na HC Vault
 - Používá KV (Key-Value) verzi 2 - podporuje verzování secrets
 - Aktivuje KV secrets v2 engine poté automaticky načítá heslo ze souboru `vault-learn.txt`
 
@@ -65,6 +65,10 @@ vault login
 # Stáhne pluginy definované v použitém poskytovateli (provider)
 terraform init
 
+# Tento krok je doporučený, ale je možné ho vynechat
+# Ukáže danému uživateli prostředky, které budou vytvořeny, aby byla zajištěna správná konfigurace bez aplikování samotné konfigurace (něco jako Openshift --dry-run)
+terraform plan
+
 # Vytvoří secret ve Vaultu podle souboru `main.tf`
 terraform apply
 ```
@@ -80,12 +84,14 @@ vault kv get secret/my-secret
 
 ## Poznatky a principy
 
-- Vault vždy šifruje data na disku.
+- Vault vždy šifruje data na disku za pomocí několika šifrovacích algoritmů
+- Enkódování pomocí BASE64 nebo checksum MD5 použit není pro přímé šifrování - nejedná se o šifrovací algoritmy
 - Unseal klíče jsou potřeba po každém restartu a to minimálně 3 různé!
-- Root token dává plný přístup
-- Existují i omezené tokeny, které povolují přístup jen k některým funkcionalitám
-- Terraform automatizuje správu secrets
-- Všechny citlivé údaje jsou verzovány bezpečně
+- Při použití `vault operator init` je vygenerováno 5 klíčů a 1 root token
+- Root token dává plný přístup ke všem citlivým údajům uložených ve Vault
+- Existují i omezené tokeny, které povolují přístup jen k některým funkcionalitám (nemám zkušenost)
+- Terraform automatizuje správu secrets, ale i zahájení a použití HashiCorp Vault pomocí poskytovatele Vault v `main.tf`
+- Všechny citlivé údaje jsou verzovány pomocí Git a uloženy zabezpečně
 
 Díky tomu máme šifrování dat a kontrolu přístupu uživatelů do Vaultu.
 Máme funkční automatizaci pomocí Terraformu s verzováním konfigurace v Git repu.
