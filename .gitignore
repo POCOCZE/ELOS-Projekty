@@ -1,6 +1,14 @@
 # Ansible Project
 # ansible/hosts.ini
 
+
+
+# HashiCorp Vault Terraform projekt
+vault-terraform/vault-data
+vault-terraform/.terraform
+vault-terraform/terraform.tfstate
+vault-terraform/.terraform.lock.hcl
+
 # Python Project
 python/welcome-elos-webapp/bin/Activate.ps1
 python/welcome-elos-webapp/bin/activate
