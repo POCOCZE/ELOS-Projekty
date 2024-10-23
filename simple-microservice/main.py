@@ -1,7 +1,7 @@
 # Import potřebných knihoven
 from fastapi import FastAPI, HTTPException # type: ignore
-from prometheus_client import Counter, generate_latest
-from dotenv import load_dotenv
+from prometheus_client import Counter, generate_latest # type: ignore
+from dotenv import load_dotenv # type: ignore
 import os
 
 # Načíst proměnná prostředí - env
@@ -35,9 +35,11 @@ async def get_message():
   """"Get Message From Env Variable"""
   return {"message": MESSAGE}
 
-@app.get("/message")
-async def create_message():
-  """"Create New Message"""
+@app.post("/message")
+async def create_message(text: str):
+  if not text:
+    raise HTTPException(status_code=400, detail="Text cannot be empty!")
+  messages.append(text)
   return {"status": "Success!", "message": text}
 
 @app.get("/messages")

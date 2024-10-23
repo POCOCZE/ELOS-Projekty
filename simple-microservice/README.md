@@ -59,7 +59,7 @@ Obsahuje následující HTTP metody:
 
 - Použitím Dockerfile pro vytvoření Docker Image
 
-## Spuštění
+## Spuštění - Python Framework
 
 ```bash
 # PRO MacOS
@@ -76,3 +76,64 @@ pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
+Ve výhozím nastavení je služba dostupná na výchozím portu 8000.
+
+## Vytvoření a Spuštění Docker Image
+
+```bash
+# Vytvoření Docker Image s názvem simple-microservice
+# Tečka na konci vybírá pro vytvoření Image aktuální adresář
+docker build -t simple-microservice .
+
+# Spuštění Docker Image pro vytvoření kontejneru
+# `-d` znamená spuštění kontejneru na pozadí
+docker run -d -p 8080:8080 --name microservice simple-microservice
+
+# Kontrola logů kontejnerů
+# Jméno kontejneru je v tomto případě `microservice`
+docker logs microservice
+
+# Zastavení kontejneru pomocí
+docker stop microservice
+
+# Odstranění kontejneru
+docker rm microservice
+
+# Odstranění Docker Image
+docker rmi simple-microservice
+```
+
+## Testování Endpointů
+
+```bash
+# Test Health-Checku
+curl http://localhost:8080/health
+
+# Test vypsání výchozí zprávy `Hello ELOS!`
+curl http://localhost:8080/message
+
+# Test vytvoření zprávy
+# Při chybě vypíše `Metnod Not Allowed`
+# Správně by měl vypsat `Success!`
+curl -X POST "http://localhost:8080/message?text=Hello+World"
+
+# Test získání všech zpráv
+curl http://localhost:8080/messages
+
+# Test metrik
+curl http://localhost:8080/metrics
+```
+
+## Ukázka funkčnosti
+
+```log
+<!-- Zapsání informací pomocí metody POST: -->
+curl -X POST http://localhost:8080/message \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Im impressed"}'
+{"status":"Success!","message":"Im impressed"}
+
+<!-- Zobrazení zprávy s dalšími již poslanými -->
+curl http://localhost:8080/messages
+{"messages":["I Like That!","It works! Wow!!","Great.","Im impressed"]}
+```
