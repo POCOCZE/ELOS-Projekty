@@ -1,29 +1,47 @@
-# This repo is used to temporarilly save and store ELOS projects i am currently working/worked on
+# This repo is used to temporarilly save and store ELOS projects I am currently working/worked on
 
-## Successfully
+`(from the most recent at the top)`
 
-- Coded app in Python by using Flask framework for development
-- Created modern visuals by using combination of HTML, CSS, JavaScript and TailWindCSS libraries by using CDN
-- For production use cases switched to Gunicorn
-- Unit tested the app if basic root and paths works - if yes print OK
-- Created Dockerfile with requirements.txt file
-- Built Docker image by using `docker build`
-- Checked for vulnerabilities with Docker Scout
-- Spinned up the container with `Docker run` to test if everything works
-- Created how to create and work with Helm Charts - create Helm Chart
-- Fixed a lot of issues related to Helm Charts
-- Created CI/CD pipeline to automatically create release of helm charts!
-- Ran the WebApp by using my own Helm Chart on my kubernetes cluster!
+## Stateless Simple Microservice Implementation (optionally)
 
-# Accessible through this link: [Welcome-ELOS-WebApp](https://elos.exprt.fun)
+### Brief Information
 
-## Bash
+Create from scratch and implement stateless microservice (by using 12 factor app principle) that uses environment variable of API calls. Should be available through REST API (just HTTP `GET` and `POST` are sufficient). Implement health-checks or metrics is bonus.
 
-Contains bash script to create N number of users. You can set there user names and passwords that will be created
-Creates ssh directory and generates public/private key pair
-Changes ownership of .ssh dir so keys will own the user.
+Project uses Python framework called FastAPI that by default uses REST API:
 
-## Welcome-ELOS-WebApp
+- FastAPI
+- Uses Prometheus python library to generate outputs that Prometheus understands (PromQL)
+- Supports environment variables by using `.env` file (not in repo)
+- Asynchonously process each request
+
+---
+---
+
+## HashiCorp Vault a Terraform
+
+### Brief Info
+
+Implement a way to manage secrets by using tool called HashiCorp Vault. Use programming language HCL (hashiCorp Configuration Language) that is declarative type. Outputs will be saved in Github repo. The goal is to add into HshiCorp Vault some secrets that was previously in plaintext `.txt` file locally.
+
+- HashiCorp BVault is a tool to manage secrets
+- It safely saves them by using cryptographic techniques
+- HCL is a declarative type of programming language that HashiCorp uses
+- Git is a version control system that does not save the actual files but rather their changes that have been made
+
+---
+---
+
+## Ansible
+
+Its free and open-source configuration management automation tool that uses SSH to log into hosts.
+
+This means that this tool is usefull for variout workload types including kubernetes cluster where cluster admins had configured SSH access to their API.
+
+---
+---
+
+## Python project Welcome-ELOS-WebApp
 
 Contains hello-world app that uses archetype or skeleton of the app
 
@@ -31,11 +49,11 @@ Contains hello-world app that uses archetype or skeleton of the app
 2. Next we will use containers to pack the app up, create executable image
 3. After that run it on some container orchestrator - K8s/OpenShift
 
----
+### Accessible through this link: [Welcome-ELOS-WebApp](https://elos.podarix.fun)
 
 ### How to create a Helm Chart
 
-#### MacOs
+#### for MacOs
 
 ```bash
 brew install helm
@@ -44,54 +62,17 @@ cd helm-charts/
 helm create welcome-elos-webapp
 ```
 
-## Ansible
+---
+---
 
-Its free and open-source configuration management automation tool that uses SSH to log into hosts.
+## Bash Project
 
-### Ansible-Project Outputs
+Contains bash script to create N number of users. You can set there user names and passwords that will be created
+Creates ssh directory and generates public/private key pair
+Changes ownership of .ssh dir so keys will own the user.
 
-```bash
-ansible-playbook ./playbooks/create-users.yml -i hosts.ini --ask-become-pass
-BECOME password: supersecret!
-[WARNING]: Invalid characters were found in group names but not replaced, use -vvvv to see details
-
-PLAY [Create X number of users with SSL keys] *****************************************************************************************************************************************************************************
-
-TASK [Gathering Facts] ****************************************************************************************************************************************************************************************************
-[WARNING]: Platform linux on host 192.168.0.40 is using the discovered Python interpreter at /usr/bin/python3.12, but future installation of another Python interpreter could change the meaning of that path. See
-https://docs.ansible.com/ansible-core/2.17/reference_appendices/interpreter_discovery.html for more information.
-ok: [192.168.0.40]
-
-TASK [Create the desired directory if not exists] *************************************************************************************************************************************************************************
-ok: [192.168.0.40]
-
-TASK [Download script from github] ****************************************************************************************************************************************************************************************
-changed: [192.168.0.40]
-
-TASK [Change username in the script] **************************************************************************************************************************************************************************************
-changed: [192.168.0.40]
-
-TASK [Change password in the script if needed] ****************************************************************************************************************************************************************************
-changed: [192.168.0.40]
-
-TASK [Run the script] *****************************************************************************************************************************************************************************************************
-changed: [192.168.0.40]
-
-TASK [Delete the script] **************************************************************************************************************************************************************************************************
-changed: [192.168.0.40]
-
-TASK [List files in working directory] ************************************************************************************************************************************************************************************
-ok: [192.168.0.40]
-
-TASK [Check if dir is empty] **********************************************************************************************************************************************************************************************
-ok: [192.168.0.40]
-
-TASK [Delete whole working directory if is_empty=True] ********************************************************************************************************************************************************************
-skipping: [192.168.0.40]
-
-PLAY RECAP ****************************************************************************************************************************************************************************************************************
-192.168.0.40               : ok=9    changed=5    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0
-```
+---
+---
 
 ### What i wanna do next?
 
