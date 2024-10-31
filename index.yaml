@@ -2,6 +2,17 @@ apiVersion: v1
 entries:
   welcome-elos-webapp:
   - apiVersion: v2
+    appVersion: 2.0.0
+    created: "2024-10-31T12:21:53.322160098Z"
+    description: A Helm chart for Kubernetes that provides a Welcome-ELOS-WebApp!
+      So the app can be simply and fast ran on infrastructure.
+    digest: 20769c59ae087f7f17f3ecc6a6ed3f6d65df7f077b6fd955cf4acc34c2c98a49
+    name: welcome-elos-webapp
+    type: application
+    urls:
+    - https://github.com/POCOCZE/ELOS-Projekty/releases/download/welcome-elos-webapp-2.0.0/welcome-elos-webapp-2.0.0.tgz
+    version: 2.0.0
+  - apiVersion: v2
     appVersion: 1.0.0
     created: "2024-08-21T12:56:21.76684491Z"
     description: A Helm chart for Kubernetes that provides a Welcome-ELOS-WebApp!
@@ -12,4 +23,4 @@ entries:
     urls:
     - https://github.com/POCOCZE/ELOS-Projekty/releases/download/welcome-elos-webapp-1.0.0/welcome-elos-webapp-1.0.0.tgz
     version: 1.0.0
-generated: "2024-08-21T12:56:21.766849288Z"
+generated: "2024-10-31T12:21:53.322174575Z"
