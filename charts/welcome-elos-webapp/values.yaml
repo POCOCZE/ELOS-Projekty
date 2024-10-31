@@ -12,7 +12,7 @@ image:
   repository: pococze/python-hello-elos
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: "2.0.0"
 
 imagePullSecrets: []
 nameOverride: ""
