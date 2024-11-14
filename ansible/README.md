@@ -1,6 +1,14 @@
 # Ansible
 
-## Ansible-Project Output
+## Vault-unseal Project Info
+
+This project contains:
+- one playbook `vault-unseal.yml`
+- one variable files `env.ini`
+
+To be continued...
+
+## Create-users Project Output
 
 This output was borrowed by this into the terminal:
 
