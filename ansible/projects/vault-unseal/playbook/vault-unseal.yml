@@ -1,0 +1,47 @@
+---
+## Unseal HashiCorp Vault
+# DO NOT USE THIS PLAYBOOK IN PRODUCTION!
+# Extracted files (unseal keys, root token) are in plaintext, NOT ENCRYPTED!
+# Created by simon
+# Date: 14/11/2024
+
+- name: Initialize Vault and retrieve keys
+  hosts: vault-cluster
+  gather_facts: false
+  vars_files:
+    - ../variables/env.ini
+
+  # Prepare the Unseal keys and Root token by unsealing the HashiCorp Vault in the Pod
+  pre-tasks:
+    - name: Execute Vault init command
+      command: >
+        kubectl exec -it --namespace {{ VAULT_NAMESPACE }} pod/{{ VAULT_POD_NAME }} -- vault operator init
+      # Saves the output into the variable
+      register: vault_init_output
+
+  # Extract important resources
+  tasks:
+    - name: Extract unseal keys
+      # Set new variables during playbook execution
+      set_fact:
+        # Name of the variable here is the `unseal_keys`
+        unseal_keys: "{{ vault_init_output.stdout | regex_findall('Unseal Key \\d+: (.+)') }}"
+
+    - name: Extract root token
+      set_fact:
+        root_token: "{{ vault_init_output.stdout | regex_search('Initial Root Token: (.+)') | regex_replace('Initial Root Token: ', '') }}"
+
+  # Save the resources into files on the machine
+  # This is unsafe!
+  # Just for testing purposes!
+  post-tasks:
+    - name: Save unseal keys to file
+      copy:
+        # Copy the contents of the variable into the file - in YAML format
+        content: "{{ unseal_keys | to_yaml }}"
+        dest: "./unseal_keys.yml"
+      
+    - name: Save root token to file
+      copy:
+        content: "{{ root_token }}"
+        dest: "./root_token.txt"
