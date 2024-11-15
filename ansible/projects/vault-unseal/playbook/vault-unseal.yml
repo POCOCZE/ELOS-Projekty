@@ -9,13 +9,17 @@
   hosts: vault-cluster
   gather_facts: false
   vars_files:
-    - ../variables/env.ini
+    - ../variables/env.yml
 
   # Prepare the Unseal keys and Root token by unsealing the HashiCorp Vault in the Pod
-  pre-tasks:
+  pre_tasks:
+    - name: Switch into Kubernetes Kind cluster
+      command: >
+        kubectl cluster-info --context {{ kind_cluster_select }}
+
     - name: Execute Vault init command
       command: >
-        kubectl exec -it --namespace {{ VAULT_NAMESPACE }} pod/{{ VAULT_POD_NAME }} -- vault operator init
+        kubectl exec -it --namespace {{ vault_namespace }} pod/{{ vault_pod_name }} -- vault operator init
       # Saves the output into the variable
       register: vault_init_output
 
@@ -34,7 +38,11 @@
   # Save the resources into files on the machine
   # This is unsafe!
   # Just for testing purposes!
-  post-tasks:
+  post_tasks:
+    - name: Print the unseal key and root token to the user
+      debug:
+        msg: "Unseal keys:\n{{ unseal_keys }}\n\nRoot token:\n{{ root_token }}"
+
     - name: Save unseal keys to file
       copy:
         # Copy the contents of the variable into the file - in YAML format
