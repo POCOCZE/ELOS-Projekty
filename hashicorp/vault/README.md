@@ -17,7 +17,7 @@ Step 1.1: Install Cert-Manager with Helm:
 $ helm repo add jetstack https://charts.jetstack.io --force-update
 
 ## Install the Cert-Manager Helm chart
-$ helm install cert-manager jetstack/cert-manager --namespace cert-manager
+$ helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace
 ```
 
 ## Step 2: Create a namespace for Vault
