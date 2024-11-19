@@ -23,6 +23,7 @@ join_and_unseal_pod() {
   # Unseal the Pod
   for key in ${unseal_keys}; do
     kubectl exec -n ${NAMESPACE} pod/${pod_name} -- vault operator unseal ${key}
+    sleep 5
   done
 }
 
