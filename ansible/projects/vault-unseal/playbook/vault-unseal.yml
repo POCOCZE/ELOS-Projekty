@@ -96,3 +96,12 @@
   #       - /tmp/extract_unseal_keys.sh
   #       - /tmp/unseal_vault_pod.sh
   #       - /tmp/join_and_unseal_pods.sh
+
+###
+# After execution the HashiCorp Vault Pods are connected together
+# k exec -it pod/vault-0 -- vault operator raft list-peers
+# Node       Address                        State       Voter
+# ----       -------                        -----       -----
+# vault-0    vault-0.vault-internal:8201    leader      true
+# vault-1    vault-1.vault-internal:8201    follower    true
+# vault-2    vault-2.vault-internal:8201    follower    true
