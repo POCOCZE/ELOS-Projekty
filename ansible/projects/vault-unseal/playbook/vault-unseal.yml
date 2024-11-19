@@ -5,51 +5,72 @@
 # Created by simon
 # Date: 14/11/2024
 
-- name: Initialize Vault and retrieve keys
+- name: Initialize, Unseal, Join HashiCorp Vault Pods in High Availability Deployment Type
   hosts: vault-cluster
-  gather_facts: false
+  gather_facts: no
   vars_files:
     - ../variables/env.yml
 
-  # Prepare the Unseal keys and Root token by unsealing the HashiCorp Vault in the Pod
   pre_tasks:
-    - name: Switch into Kubernetes Kind cluster
-      command: >
-        kubectl cluster-info --context {{ kind_cluster_select }}
+    - name: Download extract_unseal_keys.sh script
+      get_url:
+        url: "{{ github_repo_url }}extract_unseal_keys.sh"
+        dest: /tmp/extract_unseal_keys.sh
+        mode: '0755'
 
-    - name: Execute Vault init command
-      command: >
-        kubectl exec -it --namespace {{ vault_namespace }} pod/{{ vault_pod_name }} -- vault operator init
-      # Saves the output into the variable
-      register: vault_init_output
+    - name: Download unseal_vault_pod.sh script
+      get_url:
+        url: "{{ github_repo_url }}unseal_vault_pod.sh"
+        dest: /tmp/unseal_vault_pod.sh
+        mode: '0755'
 
-  # Extract important resources
+    - name: Download join_and_unseal_pods.sh script
+      get_url:
+        url: "{{ github_repo_url }}join_and_unseal_pods.sh"
+        dest: /tmp/join_and_unseal_pods.sh
+        mode: '0755'
+
+    - name: Check if HashiCorp Vault is installed with Helm
+      command: helm list -n {{ namespace }} -q
+      register: helm_list
+      failed_when: "'vault' not in helm_list.stdout"
+
+    - name: Get the number of replicas
+      command: helm show values vault
+      register: helm_values
+
+    - name: Extract the number of replicas
+      set_fact:
+        replica_count: "{{ helm_values.stdout | regex_search('replicas: (\\d+)', '\\1') | int }}"
+
   tasks:
-    - name: Extract unseal keys
-      # Set new variables during playbook execution
-      set_fact:
-        # Name of the variable here is the `unseal_keys`
-        unseal_keys: "{{ vault_init_output.stdout | regex_findall('Unseal Key \\d+: (.+)') }}"
+    - name: Initialize the first Vault `vault-0` pod
+      kubernetes.core.k8s_exec:
+        namespace: "{{ namespace }}"
+        pod: "{{ vault_pod_0 }}"
+        command: vault operator init
+      register: init_output
 
-    - name: Extract root token
-      set_fact:
-        root_token: "{{ vault_init_output.stdout | regex_search('Initial Root Token: (.+)') | regex_replace('Initial Root Token: ', '') }}"
+    - name: Save Unseal Keys and Root Token
+      copy:
+        content: "{{ init_output.stdout }}"
+        dest: /tmp/vault_init_output.txt
 
-  # Save the resources into files on the machine
-  # This is unsafe!
-  # Just for testing purposes!
+    - name: Extract Unseal Keys and Root Token
+      script: extract_unseal_keys.sh
+
+    - name: Unseal the first Vault pod
+      script: unseal_vault_pod.sh
+
+    - name: Join and unseal remaining Vault pods
+      script: join_and_unseal_pods.sh {{ namespace }} {{ vault_pod_0 }} {{ replica_count }}
+
   post_tasks:
-    - name: Print the unseal key and root token to the user
-      debug:
-        msg: "Unseal keys:\n{{ unseal_keys }}\n\nRoot token:\n{{ root_token }}"
-
-    - name: Save unseal keys to file
-      copy:
-        # Copy the contents of the variable into the file - in YAML format
-        content: "{{ unseal_keys | to_yaml }}"
-        dest: "./unseal_keys.yml"
-      
-    - name: Save root token to file
-      copy:
-        content: "{{ root_token }}"
-        dest: "./root_token.txt"
+    - name: Clean up temporary Bash Scripts from GitHub Repo
+      file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - /tmp/extract_unseal_keys.sh
+        - /tmp/unseal_vault_pod.sh
+        - /tmp/join_and_unseal_pods.sh
