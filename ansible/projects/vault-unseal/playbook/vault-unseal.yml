@@ -12,23 +12,23 @@
     - ../variables/env.yml
 
   pre_tasks:
-    - name: Download extract_unseal_keys.sh script
-      get_url:
-        url: "{{ github_repo_url }}extract_unseal_keys.sh"
-        dest: /tmp/extract_unseal_keys.sh
-        mode: '0755'
+    # - name: Download extract_unseal_keys.sh script
+    #   get_url:
+    #     url: "{{ github_repo_url }}extract_unseal_keys.sh"
+    #     dest: /tmp/extract_unseal_keys.sh
+    #     mode: '0755'
 
-    - name: Download unseal_vault_pod.sh script
-      get_url:
-        url: "{{ github_repo_url }}unseal_vault_pod.sh"
-        dest: /tmp/unseal_vault_pod.sh
-        mode: '0755'
+    # - name: Download unseal_vault_pod.sh script
+    #   get_url:
+    #     url: "{{ github_repo_url }}unseal_vault_pod.sh"
+    #     dest: /tmp/unseal_vault_pod.sh
+    #     mode: '0755'
 
-    - name: Download join_and_unseal_pods.sh script
-      get_url:
-        url: "{{ github_repo_url }}join_and_unseal_pods.sh"
-        dest: /tmp/join_and_unseal_pods.sh
-        mode: '0755'
+    # - name: Download join_and_unseal_pods.sh script
+    #   get_url:
+    #     url: "{{ github_repo_url }}join_and_unseal_pods.sh"
+    #     dest: /tmp/join_and_unseal_pods.sh
+    #     mode: '0755'
 
     - name: Check if HashiCorp Vault is installed with Helm
       command: helm list -n {{ namespace }} -q
@@ -67,7 +67,7 @@
         executable: /bin/bash
 
     - name: Join and unseal remaining Vault pods
-      script: ../templates/join_and_unseal_pods.sh {{ namespace }} {{ vault_pod_0 }} {{ replica_count }}
+      script: ../templates/join_and_unseal_pods.sh {{ namespace }} {{ vault_pod_0 }} {{ replica_count }} {{ leader-ca-cert }}
       args:
         executable: /bin/bash
 
