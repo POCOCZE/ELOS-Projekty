@@ -36,7 +36,7 @@
       failed_when: "'vault' not in helm_list.stdout"
 
     - name: Get the number of replicas
-      command: helm show values vault
+      command: helm get values vault
       register: helm_values
 
     - name: Extract the number of replicas
@@ -57,13 +57,19 @@
         dest: /tmp/vault_init_output.txt
 
     - name: Extract Unseal Keys and Root Token
-      script: extract_unseal_keys.sh
+      script: ../templates/extract_unseal_keys.sh
+      args:
+        executable: /bin/bash
 
     - name: Unseal the first Vault pod
-      script: unseal_vault_pod.sh
+      script: ../templates/unseal_vault_pod.sh {{ namespace }} {{ vault_pod_0 }}
+      args:
+        executable: /bin/bash
 
     - name: Join and unseal remaining Vault pods
-      script: join_and_unseal_pods.sh {{ namespace }} {{ vault_pod_0 }} {{ replica_count }}
+      script: ../templates/join_and_unseal_pods.sh {{ namespace }} {{ vault_pod_0 }} {{ replica_count }}
+      args:
+        executable: /bin/bash
 
   post_tasks:
     - name: Clean up temporary Bash Scripts from GitHub Repo

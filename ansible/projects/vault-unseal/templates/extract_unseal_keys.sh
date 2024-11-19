@@ -6,4 +6,4 @@
 # Date: 18/11/2024
 
 grep 'Unseal Key' /tmp/vault_init_output.txt | awk '{print $4}' > /tmp/unseal_keys.txt
-grep 'Root Token' /tmp/vault_init_output.txt | awk '{print $3}' > /tmp/root_token.txt
+grep 'Root Token' /tmp/vault_init_output.txt | awk '{print $4}' > /tmp/root_token.txt

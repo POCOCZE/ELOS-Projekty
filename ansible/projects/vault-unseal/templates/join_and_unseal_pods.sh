@@ -17,11 +17,11 @@ join_and_unseal_pod() {
   local unseal_keys=$(head -n 3 /tmp/unseal_keys.txt)
 
   # Join the pod to the Raft
-  kubectl exec -n ${NAMESPACE} ${pod_name} -- ${join_command}
+  kubectl exec -n ${NAMESPACE} pod/${pod_name} -- ${join_command}
 
   # Unseal the Pod
   for key in ${unseal_keys}; do
-    kubectl exec -n ${NAMESPACE} ${pod_name} -- vault operator unseal ${key}
+    kubectl exec -n ${NAMESPACE} pod/${pod_name} -- vault operator unseal ${key}
   done
 }
 

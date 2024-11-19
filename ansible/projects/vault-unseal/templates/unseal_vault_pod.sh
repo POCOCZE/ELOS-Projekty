@@ -5,6 +5,10 @@
 # Created by simon
 # Date: 18/11/2024
 
+# Variables
+NAMESPACE=$1
+VAULT_POD_0=$2
+
 for key in $(head -n 3 /tmp/unseal_keys.txt); do
-  vault operator unseal $key
+  kubectl exec -n ${NAMESPACE} pod/${VAULT_POD_0} -- vault operator unseal $key
 done
