@@ -1,7 +1,5 @@
 # Ansible Project
-# ansible/hosts.ini
-
-
+ansible/hosts.ini
 
 # HashiCorp Vault Terraform projekt
 vault-terraform/vault-data
