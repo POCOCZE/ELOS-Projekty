@@ -12,11 +12,11 @@
     - ../variables/env.yml
 
   pre_tasks:
-    - name: Copy the script to the remote server
-      copy:
-        src: ../templates/join_and_unseal_pods.sh
-        dest: "/tmp/"
-        mode: '0755'
+    # - name: Copy the script to the remote server
+    #   copy:
+    #     src: ../templates/join_and_unseal_pods.sh
+    #     dest: "/tmp/"
+    #     mode: '0755'
 
     # - name: Download extract_unseal_keys.sh script
     #   get_url:
@@ -36,18 +36,24 @@
     #     dest: /tmp/join_and_unseal_pods.sh
     #     mode: '0755'
 
+    - name: Install python3-kubernetes if not installed
+      become: yes
+      apt:
+        name: python3-kubernetes
+        state: present
+
     - name: Check if HashiCorp Vault is installed with Helm
       command: helm list -n {{ namespace }} -q
       register: helm_list
       failed_when: "'vault' not in helm_list.stdout"
 
-    - name: Get the number of replicas
-      command: helm get values vault
-      register: helm_values
+    - name: Get the number of replicas using helm
+      shell: helm get values vault -o json | jq '.server.ha.replicas'
+      register: helm_output
 
     - name: Extract the number of replicas
       set_fact:
-        replica_count: "{{ helm_values.stdout | regex_search('replicas: (\\d+)', '\\1') | int }}"
+        replica_count: "{{ helm_output.stdout }}"
 
   tasks:
     - name: Initialize the first Vault `vault-0` pod
@@ -72,20 +78,21 @@
       args:
         executable: /bin/bash
 
-    # - name: Join and unseal remaining Vault pods
-    #   script: ../templates/join_and_unseal_pods.sh {{ namespace }} {{ vault_pod_0 }} {{ replica_count }} # {{ leader-ca-cert }}
-    #   args:
-    #     executable: /bin/bash
-
     - name: Join and unseal remaining Vault pods
-      shell: "bash /tmp/join_and_unseal_pods.sh {{ namespace }} {{ vault_pod_0 }} {{ replica_count }}"
+      script: ../templates/join_and_unseal_pods.sh {{ namespace }} {{ vault_pod_0 }} {{ replica_count }} {{ leader-ca-cert }}
+      args:
+        executable: /bin/bash
 
-  post_tasks:
-    - name: Clean up temporary Bash Scripts from GitHub Repo
-      file:
-        path: "{{ item }}"
-        state: absent
-      with_items:
-        - /tmp/extract_unseal_keys.sh
-        - /tmp/unseal_vault_pod.sh
-        - /tmp/join_and_unseal_pods.sh
+    # - name: Join and unseal remaining Vault pods
+    #   shell: "bash /tmp/join_and_unseal_pods.sh {{ namespace }} {{ vault_pod_0 }} {{ replica_count }}"
+    #   register: script_output
+
+  # post_tasks:
+  #   - name: Clean up temporary Bash Scripts from GitHub Repo
+  #     file:
+  #       path: "{{ item }}"
+  #       state: absent
+  #     with_items:
+  #       - /tmp/extract_unseal_keys.sh
+  #       - /tmp/unseal_vault_pod.sh
+  #       - /tmp/join_and_unseal_pods.sh
