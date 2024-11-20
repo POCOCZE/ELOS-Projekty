@@ -12,30 +12,6 @@
     - ../variables/env.yml
 
   pre_tasks:
-    # - name: Copy the script to the remote server
-    #   copy:
-    #     src: ../templates/join_and_unseal_pods.sh
-    #     dest: "/tmp/"
-    #     mode: '0755'
-
-    # - name: Download extract_unseal_keys.sh script
-    #   get_url:
-    #     url: "{{ github_repo_url }}extract_unseal_keys.sh"
-    #     dest: /tmp/extract_unseal_keys.sh
-    #     mode: '0755'
-
-    # - name: Download unseal_vault_pod.sh script
-    #   get_url:
-    #     url: "{{ github_repo_url }}unseal_vault_pod.sh"
-    #     dest: /tmp/unseal_vault_pod.sh
-    #     mode: '0755'
-
-    # - name: Download join_and_unseal_pods.sh script
-    #   get_url:
-    #     url: "{{ github_repo_url }}join_and_unseal_pods.sh"
-    #     dest: /tmp/join_and_unseal_pods.sh
-    #     mode: '0755'
-
     - name: Install python3-kubernetes if not installed
       become: yes
       apt:
@@ -83,21 +59,7 @@
       args:
         executable: /bin/bash
 
-    # - name: Join and unseal remaining Vault pods
-    #   shell: "bash /tmp/join_and_unseal_pods.sh {{ namespace }} {{ vault_pod_0 }} {{ replica_count }}"
-    #   register: script_output
-
-  # post_tasks:
-  #   - name: Clean up temporary Bash Scripts from GitHub Repo
-  #     file:
-  #       path: "{{ item }}"
-  #       state: absent
-  #     with_items:
-  #       - /tmp/extract_unseal_keys.sh
-  #       - /tmp/unseal_vault_pod.sh
-  #       - /tmp/join_and_unseal_pods.sh
-
-###
+#---------------------------------------------------------------#
 # After execution the HashiCorp Vault Pods are connected together
 # k exec -it pod/vault-0 -- vault operator raft list-peers
 # Node       Address                        State       Voter
