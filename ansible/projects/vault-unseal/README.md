@@ -1,5 +1,7 @@
 # Ansible Playbook To Automatically Initialize, Unseal, Join HashiCorp Vault Pods in High Availability Deployment Type with TLS
 
+`This Ansible Playbook was tested in Linux based OS, other OSes are not guaranted to run smoothly or as intended, WSL2 was not tested either!`
+
 To run the Ansible Playbook correctly do this things first:
 
 1. Ensure that HashiCorp Vault is installed with Helm - Tutorial is in the HashiCorp/Vault folder
