@@ -5,7 +5,7 @@
 # Created by simon
 # Date: 14/11/2024
 
-- name: Initialize, Unseal, Join HashiCorp Vault Pods in High Availability Deployment Type
+- name: Initialize, Unseal, Join HashiCorp Vault Pods in High Availability Deployment Type with TLS
   hosts: vault-cluster
   gather_facts: no
   vars_files:
