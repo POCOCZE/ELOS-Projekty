@@ -28,7 +28,7 @@ To run the Ansible Playbook correctly do this things first:
       $ helm get manifest vault
     ```
 
-2. All the Pods must be in `running` state
+2. All the Pods must be in `Running` state
 
     ```bash
     $ kgp
@@ -57,10 +57,24 @@ This Ansible Playbook creates important files into `/tmp/` root folder:
 - /tmp/root_token.txt
 - /tmp/unseal_keys.txt
 
+Output from any of the HashiCorp Vault Pods to check correct state:
+(You must login into the vault inside the Pod so see the results with `vault login` - root token is in the file described above)
+
+After execution the HashiCorp Vault Pods are connected together
+
+```bash
+$ k exec -it pod/vault-0 -- vault operator raft list-peers
+Node       Address                        State       Voter
+----       -------                        -----       -----
+vault-0    vault-0.vault-internal:8201    leader      true
+vault-1    vault-1.vault-internal:8201    follower    true
+vault-2    vault-2.vault-internal:8201    follower    true
+```
+
 Here is the output of Ansible playbook execution:
 
 ```bash
-ansible-playbook -i hosts.ini projects/vault-unseal/playbook/vault-unseal.yml --ask-become-pass
+$ ansible-playbook -i hosts.ini projects/vault-unseal/playbook/vault-unseal.yml --ask-become-pass
 BECOME password:
 [WARNING]: Invalid characters were found in group names but not replaced, use -vvvv to see details
 [WARNING]: Found variable using reserved name: namespace
