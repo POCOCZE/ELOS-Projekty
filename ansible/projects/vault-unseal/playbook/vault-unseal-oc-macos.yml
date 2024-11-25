@@ -3,7 +3,7 @@
 # DO NOT USE THIS PLAYBOOK IN PRODUCTION!
 # Extracted files (unseal keys, root token) are in plaintext, NOT ENCRYPTED!
 # Created by simon
-# Date: 14/11/2024
+# Date: 25/11/2024
 
 - name: Initialize, Unseal, Join HashiCorp Vault Pods in High Availability Deployment Type with TLS
   hosts: vault-cluster
@@ -12,24 +12,26 @@
     - ../variables/env.yml
 
   pre_tasks:
-    - name: Install python3-kubernetes if not installed
-      become: yes
-      apt:
-        name: python3-kubernetes
+    - name: Install pre-requisites
+      pip:
+        name:
+          - openshift
+          - pyyaml
+          - kubernetes
+      executable: pip3
+
+    - name: Ensure jq is installed
+      homebrew:
+        name: jq
         state: present
 
-    - name: Check if HashiCorp Vault is installed with Helm
-      command: helm list -n {{ namespace }} -q
-      register: helm_list
-      failed_when: "'vault' not in helm_list.stdout"
+    - name: Check and set replica count
+      script: ../templates/check_replica_count.sh {{ namespace }} {{ replicas }}
+      register: replica_count_output
 
-    - name: Get the number of replicas using helm
-      shell: helm get values vault -o json | jq '.server.ha.replicas'
-      register: helm_output
-
-    - name: Extract the number of replicas
+    - name: Set replica count
       set_fact:
-        replica_count: "{{ helm_output.stdout }}"
+        replica_count: "{{ replica_count_output.stdout }}"
 
   tasks:
     - name: Initialize the first Vault `vault-0` pod
@@ -58,3 +60,4 @@
       script: ../templates/join_and_unseal_pods.sh {{ namespace }} {{ vault_pod_0 }} {{ replica_count }} {{ leader_ca_cert }}
       args:
         executable: /bin/bash
+
