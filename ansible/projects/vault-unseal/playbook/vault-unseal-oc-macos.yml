@@ -12,24 +12,24 @@
     - ../variables/env.yml
 
   pre_tasks:
-    - name: Install pre-requisites
-      pip:
-        name:
-          - openshift
-          - pyyaml
-          - kubernetes
-      executable: pip3
-
     - name: Ensure jq is installed
       homebrew:
         name: jq
         state: present
 
+    # - name: Ensure Python is installed
+    #   homebrew:
+    #     name: python3
+    #     state: present
+
+    - name: Install kubernetes.core Ansible collection
+      command: ansible-galaxy collection install kubernetes.core
+      args:
+        creates: ~/.ansible/collections/ansible_collections/kubernetes/core
+
     - name: Check and set replica count
       script: ../templates/check_replica_count.sh {{ namespace }} {{ replicas }}
       register: replica_count_output
-
-    - name: Set replica count
       set_fact:
         replica_count: "{{ replica_count_output.stdout }}"
 
