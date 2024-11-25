@@ -12,24 +12,61 @@
     - ../variables/env.yml
 
   pre_tasks:
+    - name: install pre-requisites
+      pip:
+        name:
+          - openshift
+          - pyyaml
+          - kubernetes
+
     - name: Install python3-kubernetes if not installed
       become: yes
       apt:
         name: python3-kubernetes
         state: present
+      ignore_errors: yes
+
+    # - name: Check if HashiCorp Vault is installed with Helm
+    #   command: helm list -n {{ namespace }} -q
+    #   register: helm_list
+    #   failed_when: "'vault' not in helm_list.stdout"
+
+    # - name: Get the number of replicas using helm
+    #   shell: helm get values vault -o json | jq '.server.ha.replicas'
+    #   register: helm_output
+
+    # - name: Extract the number of replicas
+    #   set_fact:
+    #     replica_count: "{{ helm_output.stdout }}"
 
     - name: Check if HashiCorp Vault is installed with Helm
       command: helm list -n {{ namespace }} -q
       register: helm_list
-      failed_when: "'vault' not in helm_list.stdout"
+      ignore_errors: yes
 
     - name: Get the number of replicas using helm
       shell: helm get values vault -o json | jq '.server.ha.replicas'
       register: helm_output
+      ignore_errors: yes
 
-    - name: Extract the number of replicas
+    - name: Validate and set helm output
+      set_fact:
+        helm_output:
+          stdout: "{{ helm_raw_output.stdout }}"
+      when: 
+        - helm_raw_output is success
+        - helm_raw_output.stdout | int | string == helm_raw_output.stdout | trim
+      ignore_errors: yes
+
+    - name: Set replica count from Helm output
       set_fact:
         replica_count: "{{ helm_output.stdout }}"
+      when: helm_output is success
+
+    - name: Set replica count from variables
+      set_fact:
+        replica_count: "{{ replicas }}"
+      when: helm_output is failed
 
   tasks:
     - name: Initialize the first Vault `vault-0` pod
