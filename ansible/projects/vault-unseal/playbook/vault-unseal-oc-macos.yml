@@ -30,6 +30,8 @@
     - name: Check and set replica count
       script: ../templates/check_replica_count.sh {{ namespace }} {{ replicas }}
       register: replica_count_output
+
+    - name: Set replica count
       set_fact:
         replica_count: "{{ replica_count_output.stdout }}"
 
