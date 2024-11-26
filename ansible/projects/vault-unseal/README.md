@@ -9,7 +9,7 @@ To run the Ansible Playbook correctly do this things first:
 1. Ensure that HashiCorp Vault is installed with Helm - Tutorial is in the HashiCorp/Vault folder
 
     ```bash
-    $ helm install vault hashicorp/vault -f values.yaml
+    helm install vault hashicorp/vault -f values.yaml
     NAME: vault
     LAST DEPLOYED: Tue Nov 19 20:53:16 2024
     NAMESPACE: vault
@@ -33,7 +33,7 @@ To run the Ansible Playbook correctly do this things first:
 2. All the Pods must be in `Running` state
 
     ```bash
-    $ kgp
+    kgp
     NAME                                    READY   STATUS    RESTARTS   AGE
     vault-0                                 0/1     Running   0          7s
     vault-1                                 0/1     Running   0          7s
@@ -65,7 +65,7 @@ Output from any of the HashiCorp Vault Pods to check correct state:
 After execution the HashiCorp Vault Pods are connected together
 
 ```bash
-$ k exec -it pod/vault-0 -- vault operator raft list-peers
+k exec -it pod/vault-0 -- vault operator raft list-peers
 Node       Address                        State       Voter
 ----       -------                        -----       -----
 vault-0    vault-0.vault-internal:8201    leader      true
@@ -76,7 +76,7 @@ vault-2    vault-2.vault-internal:8201    follower    true
 Here is the output of Ansible playbook execution:
 
 ```bash
-$ ansible-playbook -i hosts.ini projects/vault-unseal/playbook/vault-unseal.yml --ask-become-pass
+ansible-playbook -i hosts.ini projects/vault-unseal/playbook/vault-unseal.yml --ask-become-pass
 BECOME password:
 [WARNING]: Invalid characters were found in group names but not replaced, use -vvvv to see details
 [WARNING]: Found variable using reserved name: namespace
@@ -128,5 +128,5 @@ The playbook is called `vault-unseal-oc-macos.yaml` in the playbook folder.
 You can run the playbook the same way as for Linux:
 
 ```bash
-$ ansible-playbook -i hosts.ini projects/vault-unseal/playbook/vault-unseal.yml --ask-become-pass
+ansible-playbook -i hosts.ini projects/vault-unseal/playbook/vault-unseal.yml --ask-become-pass
 ```
