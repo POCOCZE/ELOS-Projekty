@@ -1,6 +1,8 @@
 # Ansible Playbook To Automatically Initialize, Unseal, Join HashiCorp Vault Pods in High Availability Deployment Type with TLS
 
-`This Ansible Playbook was tested in Linux based OS, other OSes are not guaranted to run smoothly or as intended, WSL2 was not tested either!`
+## Linux
+
+`This Ansible Playbook was tested in Linux based OS, other OSes are not guaranted to run smoothly or as intended, WSL2 was not tested at all!`
 
 To run the Ansible Playbook correctly do this things first:
 
@@ -115,4 +117,16 @@ changed: [kubernetes-kind.test-environment.example.com]
 
 PLAY RECAP ************************************************************************************************************************************************************************************************************************************************
 kubernetes-kind.test-environment.example.com     : ok=9    changed=7    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+```
+
+## MacOS
+
+For this system there exist specific Ansible Playbook that uses Homebrew to install dependencies.
+
+The playbook is called `vault-unseal-oc-macos.yaml` in the playbook folder.
+
+You can run the playbook the same way as for Linux:
+
+```bash
+$ ansible-playbook -i hosts.ini projects/vault-unseal/playbook/vault-unseal.yml --ask-become-pass
 ```

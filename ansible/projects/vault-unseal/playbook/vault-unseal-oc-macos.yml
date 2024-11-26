@@ -24,8 +24,10 @@
 
     - name: Install kubernetes.core Ansible collection
       command: ansible-galaxy collection install kubernetes.core
-      args:
-        creates: ~/.ansible/collections/ansible_collections/kubernetes/core
+      # args:
+      #   creates: ~/.ansible/collections/ansible_collections/kubernetes/core
+      ignore_errors: yes
+
 
     - name: Check and set replica count
       script: ../templates/check_replica_count.sh {{ namespace }} {{ replicas }}
