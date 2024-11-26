@@ -4,10 +4,9 @@
 
 This project contains:
 
-- one playbook `vault-unseal.yml`
-- one variable files `env.ini`
-
-To be continued...
+- 2 Playbooks `vault-unseal.yml`, `vault-unseal-oc-macos.yml`
+- 1 variable files `env.ini` with 4 variables
+- 4 Bash script files to support the Playbooks
 
 ## Create-users Project Output
 
