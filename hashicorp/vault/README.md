@@ -94,13 +94,14 @@ helm repo add hashicorp https://helm.releases.hashicorp.com
 helm install vault hashicorp/vault -f values.yaml
 ```
 
-## Step 6: Configure values.yaml file
+## Step 6: Configure `values.yaml` file
 
 ```yml
-# values.yaml
 global:
   enabled: true
   tlsDisable: false
+  # If deployed on OpenShift, change to true
+  openshift: false
 
 injector:
   enabled: true
@@ -141,6 +142,12 @@ server:
         }
         storage "raft" {
           path = "/vault/data"
+          retry_join {
+            leader_api_addr = "https://vault-0.vault-internal:8200"
+            leader_ca_cert_file = "/vault/userconfig/vault-ha-tls/ca.crt"
+            leader_client_cert_file = "/vault/userconfig/vault-ha-tls/tls.crt"
+            leader_client_key_file = "/vault/userconfig/vault-ha-tls/tls.key"
+          }
         }
         disable_mlock = true
         service_registration "kubernetes" {}
