@@ -2,6 +2,14 @@
 
 `(from the most recent at the top)`
 
+## HashiCorp Vault Automatic Cronjob Snapshot Bash Script
+
+This project is focused on creating Vault raft snapshots with easy Bash script.
+The script will be ran using cronjob.
+
+---
+---
+
 ## Stateless Simple Microservice Implementation (optionally)
 
 ### Brief Information
@@ -18,7 +26,7 @@ Project uses Python framework called FastAPI that by default uses REST API:
 ---
 ---
 
-## HashiCorp Vault a Terraform
+## HashiCorp Vault and Terraform
 
 ### Brief Info
 
