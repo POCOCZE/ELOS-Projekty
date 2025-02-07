@@ -31,15 +31,7 @@ check_vault_status() {
   fi
 }
 
-# check_vault_root_token() {
-#   if ! vault login; then
-#     echo "Vault token is not correct. Check the token."
-#     exit 2
-#   fi
-# }
-
 gather_leader_from_raft() {
-  # LEADER_ADDR=$(vault operator raft list-peers | awk '/leader/ {print$2}')
   LEADER_ADDR=$(vault operator raft list-peers -format json | jq -r '.data.config.servers[] | select(.leader == true) | .address')
   
   # $? check if the exit status of the previous command.
@@ -64,6 +56,5 @@ create_raft_snapshot() {
 ########
 
 check_vault_status
-# check_vault_root_token
 gather_leader_from_raft
 create_raft_snapshot
