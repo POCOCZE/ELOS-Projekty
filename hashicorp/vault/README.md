@@ -1,8 +1,35 @@
-# Install and setup Vault with TLS for end-to-end encryption, including installation of Jetstack Cert-Manager
+# HashiCorp Vault Section
+
+## Project Vault Snapshot
+
+This project is focused on creating Vault raft snapshots with easy Bash script.
+This script will be ran using cronjob
+
+### Add script to crontab as user Vault
+
+```bash
+crontab -e -u vault
+```
+
+Paste this into crontab table:
+
+```bash
+# run the script every week
+0 0 * * 0 /path/to/vault-snapshot.sh
+
+# run the script every day
+59 23 * * * /path/to/vault-snapshot.sh
+
+# explanation of the asterisks
+# user may not be defined if crontab parameter -u with username is defined
+# minute hour day month day_of_week <user> <script-path>
+```
+
+## Install and setup Vault with TLS for end-to-end encryption, including installation of Jetstack Cert-Manager
 
 Here are the commands to install and configure Vault with end-to-end encryption using cert-manager and Helm:
 
-## Step 1: Install dependencies
+### Step 1: Install dependencies
 
 Step 1.1: Install Cert-manager CRDs:
 
@@ -20,13 +47,13 @@ $ helm repo add jetstack https://charts.jetstack.io --force-update
 $ helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace
 ```
 
-## Step 2: Create a namespace for Vault
+### Step 2: Create a namespace for Vault
 
 ```bash
 kubectl create namespace vault
 ```
 
-## Step 3: Create an Issuer for cert-manager
+### Step 3: Create an Issuer for cert-manager
 
 ```yml
 # vault-issuer.yaml 
@@ -44,7 +71,7 @@ spec:
 kubectl apply -f vault-issuer.yaml
 ```
 
-## Step 4: Create a Certificate resource
+### Step 4: Create a Certificate resource
 
 ```yml
 # vault-certificate.yaml
@@ -84,7 +111,7 @@ spec:
 kubectl apply -f vault-certificate.yaml
 ```
 
-## Step 5: Install Vault using Helm
+### Step 5: Install Vault using Helm
 
 ```bash
 ## Add the HashiCorp Helm repository
@@ -94,7 +121,7 @@ helm repo add hashicorp https://helm.releases.hashicorp.com
 helm install vault hashicorp/vault -f values.yaml
 ```
 
-## Step 6: Configure `values.yaml` file
+### Step 6: Configure `values.yaml` file
 
 ```yml
 global:
@@ -153,7 +180,7 @@ server:
         service_registration "kubernetes" {}
 ```
 
-## Step 7: Initialize and unseal Vault
+### Step 7: Initialize and unseal Vault
 
 ```bash
 kubectl exec -it vault-0 -n vault -- vault operator init
