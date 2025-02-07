@@ -3,7 +3,7 @@
 ## Project Vault Snapshot
 
 This project is focused on creating Vault raft snapshots with easy Bash script.
-This script will be ran using cronjob
+The script will be ran using cronjob.
 
 ### Add script to crontab as user Vault
 
