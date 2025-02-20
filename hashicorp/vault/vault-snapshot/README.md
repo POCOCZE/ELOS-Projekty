@@ -38,25 +38,23 @@ To utilize the Ansible Vault Snapshot and S3 Backup Automation, follow these ste
 
 ### 1. Configure Ansible Inventory (`hosts.ini`)
 
-Ensure your Ansible inventory file (`hosts.ini` or your configured inventory path) is correctly set up to target the Linux host where Vault Raft snapshots will be managed. Define the hostname or IP address of your target machine under a relevant group (e.g., `vault-snapshot`).
+Ensure your Ansible inventory file (`hosts.ini` or your configured inventory path) is correctly set up to target the Linux host where Vault Raft snapshots will be managed. Define the hostname or IP address of your target machine under a relevant group (e.g., `vault-snapshot`) by renaming the `vault.example.com`.
 
 ```ini
 [vault-snapshot]
-vault.example.com ansible_host=<vault_server_ip_or_hostname> ansible_user=<ansible_user> ansible_become=true
+vault.example.com ansible_user=<ansible_user> ansible_become=true
 ```
 
-Replace placeholders like `<vault_server_ip_or_hostname>` and `<ansible_user>` with your actual environment details. Ensure the Ansible user has `sudo` privileges on the target host.
+Replace placeholder `<ansible_user>` with your actual environment details. Ensure the **Ansible user has `sudo` privileges on the target host**.
 
 ### 2. Customize Ansible Variables (`variables.yml`)
 
 Modify the `variables.yml` file in your Ansible project directory to customize the automation to your environment. Key variables to configure include:
 
-* **Vault Settings**: `vault_addr`, `vault_token` (for snapshot creation script).
-* **S3 Settings (for optional S3 backup)**: `s3_host`, `s3_host_bucket`, `aws_access_key_id`, `aws_secret_access_key`, `bucket_name`.
-* **Script Settings**: `local_folder` (snapshot destination), `delete_files_on_s3` (boolean to enable/disable S3 remote file deletion).
+* **Vault Settings**: `vault_addr`, `vault_token` for snapshot creation script.
+* **S3 Settings (for optional S3 backup)**: `s3.host`, `s3.bucket_name`, `s3.access_key`, `s3.secret_key`, `s3:bucket_name`.
+* **Script Settings**: `snapshots` (snapshot destination), `s3.deletion_on_local_removal.enable` (boolean to enable/disable S3 remote file deletion).
 * **User and Path Settings**: Adapt user names and directory paths if needed, although defaults are generally suitable.
-
-Ensure sensitive values like `vault_token` and `aws_secret_access_key` are securely managed, ideally using Ansible Vault or a similar secrets management solution in a production setup.
 
 ### 3. Run the Ansible Playbook
 
@@ -70,9 +68,9 @@ This command will execute the playbook, automating the Vault Raft snapshot proce
 
 ### 4. S3cmd Prerequisite (for S3 Backup Feature)
 
-If you intend to use the optional S3 snapshot synchronization feature, ensure that `s3cmd` is installed on the target Linux host where the Ansible playbook is executed. The playbook itself does not install `s3cmd`. If `s3cmd` is not installed and the S3 backup feature is enabled in `variables.yml`, the S3 sync part of the automation will likely fail.
+If you intend to use the optional S3 snapshot synchronization feature, ensure that `s3cmd` is installed on the target Linux host where the Ansible playbook is executed. The playbook itself **does not install** `s3cmd`. If `s3cmd` is not installed and the S3 backup feature is enabled in `variables.yml`, the S3 sync part of the automation will fail!
 
-If you do not wish to use the S3 backup feature, you can simply leave the S3 related variables in `variables.yml` unset or ensure the S3 backup feature is disabled, and the core Vault snapshot functionality will operate without `s3cmd`.
+If you do not wish to use the S3 backup feature, you can simply leave the S3 related variables in `variables.yml` unset (default), and the core Vault snapshot functionality will operate without `s3cmd`.
 
 ## Common Mistakes and Troubleshooting
 
