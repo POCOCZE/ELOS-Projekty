@@ -24,7 +24,7 @@ The bash script is designed to automate the process of taking snapshots of a Has
 
 * :white_check_mark: **Automated S3 Sync**: Automatically syncs local snapshot folder to S3 using `s3cmd`.
 * :white_check_mark: **Auto Bucket Creation**: Automatically creates s3 buckets if not exist to backup snapshots folder.
-* * :white_check_mark: **Periodic Execution**: Script runs periodically using `cron`.
+* :white_check_mark: **Periodic Execution**: Script runs periodically using `cron`.
 * :white_check_mark: **Ansible Configurable**: Configurable via Ansible variables for flexible deployment.
 * :white_check_mark: **Explicit Credentials**:  Handles S3 credentials directly in script via Ansible variables.
 * :white_check_mark: **Journalctl Logging**: Logs actions and errors to `journalctl`.
