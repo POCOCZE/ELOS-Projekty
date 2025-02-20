@@ -72,6 +72,26 @@ If you intend to use the optional S3 snapshot synchronization feature, ensure th
 
 If you do not wish to use the S3 backup feature, you can simply leave the S3 related variables in `variables.yml` unset (default), and the core Vault snapshot functionality will operate without `s3cmd`.
 
+## Check Journalctl Logs
+
+To check generated journalctl logs that have been generated throughout the script cron runs, switch to created system user `vault-backup`:
+
+```bash
+sudo su - vault-backup
+```
+
+Journalctl logs of the `Vault Raft Snapshot Script`:
+
+```bash
+journalctl -t vault-snapshot
+```
+
+Optional Journalctl logs of the `S3 Snapshot Sync Script`:
+
+```bash
+journalctl -t snapshot-sync
+```
+
 ## Common Mistakes and Troubleshooting
 
 * **Incorrect Vault Credentials**: Ensure `vault_addr` and `vault_token` in `variables.yml` are accurate and valid for your Vault instance. Incorrect credentials will prevent the snapshot script from authenticating with Vault.
