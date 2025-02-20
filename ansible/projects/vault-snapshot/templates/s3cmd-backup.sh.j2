@@ -1,0 +1,106 @@
+#!/bin/bash
+# --- Script Info ---
+# This script syncs a local folder to an S3 bucket using s3cmd.
+# By: simon
+# Date: 17/2/2025
+# Last tested: Not Tested
+
+##################################
+## --- SCRIPT CONFIGURATION --- ##
+##################################
+
+# --- S3 Credentials ---
+ACCESS_KEY="{{ s3.access_key }}"
+SECRET_KEY="{{ s3.secret_key }}"
+
+# --- S3 Endpoint settings ---
+# Host address (e.g., minio.yourdomain.com)
+S3_HOST="{{ s3.host }}"
+# Host bucket pattern for custom endpoints (e.g., %(bucket)s.minio.yourdomain.com)                
+S3_HOST_BUCKET="%(bucket)s.{{ s3.host }}"
+
+# --- S3 Bucket and Local Folder settings ---
+# Name of the S3 bucket to sync to (e.g., snapshots)
+BUCKET_NAME="{{ s3.bucket_name }}"
+# Path to the local folder containing snapshots (e.g., testing-bucket-snapshot)
+LOCAL_FOLDER="{{ homedir }}/{{ snapshots.dir_name }}"
+
+# --- Optional feature ---
+# Enables ability to delete files on S3 if they are removed locally
+S3_DELETION_ON_LOCAL_REMOVAL="{{ s3.deletion_on_local_removal.enabled }}" # Ansible variable: Boolean to enable deletion of files on S3 that are removed locally. Defaults to 'false'.
+
+# Common s3cmd options - initialized with essential settings.
+S3CMD_OPTIONS="--host=${S3_HOST} --host-bucket=${S3_HOST_BUCKET} --access_key=${ACCESS_KEY} --secret_key=${SECRET_KEY}"
+
+##################################
+## --- END OF CONFIGURATION --- ##
+##################################
+
+
+#######################
+## --- FUNCTIONS --- ##
+#######################
+
+# Function to log messages with a timestamp using journalctl.
+# It uses the 'logger' command to send the message to journalctl with the tag 'snapshot-sync'.
+log_message() {
+    local message="$1"
+    timestamp=$(date -I --utc --date='now') # Get current UTC date and time in ISO 8601 format
+    logger -t snapshot-sync "[$timestamp] $message"
+}
+
+
+##################
+## --- MAIN --- ##
+##################
+
+# Ensure script will exit on any error
+set -e
+
+# Initialize logging and write script start message to journalctl
+log_message "# -------------------------------------------------------------------"
+log_message "# Snapshot Sync Script Execution Started"
+log_message "# Date: $(date -I --utc --date='now')"
+log_message "# -------------------------------------------------------------------"
+
+
+# --- Start Conditional Option for Deleting Files on S3 ---
+# If true, append the '--delete-removed' option to S3CMD_OPTIONS.
+# The double `,,` comma perform CASE-INsensitive string comparisons by converting the variable's value to lowercase before the comparison
+if [[ "${S3_DELETION_ON_LOCAL_REMOVAL,,}" == "true" ]]; then
+    S3CMD_OPTIONS="${S3CMD_OPTIONS} --delete-removed"
+    log_message "Option '--delete-removed' is enabled. Files deleted locally will also be deleted from S3."
+else
+    log_message "Option '--delete-removed' is disabled. Files deleted locally will be preserved on S3."
+fi
+# --- End Conditional Option for Deleting Files on S3 ---
+
+
+# --- Start Sync Local Folder to S3 Bucket ---
+log_message "--- Starting sync process ---"
+log_message "Syncing local folder '${LOCAL_FOLDER}' to s3://${BUCKET_NAME}/ at $(date '+%Y-%m-%d %H:%M:%S')"
+
+# Sync the local folder to the S3 bucket using s3cmd with the configured options.
+# The 'sync' command efficiently updates the S3 bucket to match the local folder.
+# The '--delete-removed' option, if enabled, ensures that files removed from the local folder are also deleted from the S3 bucket.
+s3cmd $S3CMD_OPTIONS sync "$LOCAL_FOLDER" s3://${BUCKET_NAME}/
+
+# Check the exit status of the s3cmd sync command to determine if the sync was successful.
+if [ $? -ne 0 ]; then
+    log_message "Error: Sync failed at $(date '+%Y-%m-%d %H:%M:%S')."
+    log_message "Please check the s3cmd output in journalctl for more details."
+    log_message "Script execution aborted due to sync failure."
+    exit 1
+fi
+
+log_message "--- Sync process completed successfully ---"
+log_message "Sync completed successfully at $(date '+%Y-%m-%d %H:%M:%S')."
+# --- End Sync Local Folder to S3 Bucket ---
+
+
+log_message "# -------------------------------------------------------------------"
+log_message "# Snapshot Sync Script Execution Completed Successfully"
+log_message "# Date: $(date -I --utc --date='now')"
+log_message "# -------------------------------------------------------------------"
+
+exit 0

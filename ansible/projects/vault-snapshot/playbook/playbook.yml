@@ -1,0 +1,157 @@
+---
+- name: Vault Raft Snapshot Automation Script
+  hosts: vault-snapshot
+  become: True
+  become_method: sudo
+  gather_facts: False
+  vars_files:
+    - ../variables/env.yml
+  tasks:
+
+    # Define basic variables for Ansible Playbook for shorter key definitions
+    - name: Set basic facts for user
+      ansible.builtin.set_fact:
+        homedir: "{{ user.home_dir_location }}/{{ user.vault_snapshot_username }}"
+
+    # Create a dedicated, locked system user for running the Vault snapshot scripts.
+    # This user is locked down to enhance security - only root/sudo users can switch to it.
+    - name: Create locked user
+      ansible.builtin.user:
+        name: "{{ user.vault_snapshot_username }}"
+        system: "{{ user.is_system_account }}"
+        create_home: "{{ user.create_home_dir }}"
+        home: "{{ homedir }}"
+        password: "{{ user.use_default_password | bool | ternary(user.vault_snapshot_username, user.new_password) }}"
+        password_lock: "{{ user.password_lock }}"
+        shell: "{{ user.default_shell }}"
+        state: present
+
+    - name: Set correct permissions to home directory
+      ansible.builtin.file:
+        path: "{{ homedir }}"
+        state: directory
+        recurse: True
+        force: False
+        mode: 0700
+        owner: "{{ user.vault_snapshot_username }}"
+        group: "{{ user.vault_snapshot_username }}"
+
+    # Create new directory where Vault Raft Snapshots will be saved
+    # The directory then can be backed up to external storage using s3 if enabled in variables file
+    - name: Create snapshot directory with appropriate permissions and ownership
+      ansible.builtin.file:
+        path: "{{ homedir }}/{{ snapshots.dir_name }}"
+        state: directory
+        recurse: True
+        force: False
+        mode: 0700
+        owner: "{{ user.vault_snapshot_username }}"
+        group: "{{ user.vault_snapshot_username }}"
+
+    # Copy file that contains encoded key-value pairs in json: VAULT_ADDR VAULT_TOKEN 
+    # The values are encoded to enhance security - but is much less efficient than any encryption
+    - name: Copy secret file
+      ansible.builtin.template:
+        src:  ../templates/secrets.json.j2
+        dest: "{{ homedir }}/{{ secrets_file.hidden_dir_name }}/{{ secrets_file.json_file_name }}.json"
+        force: True
+        mode: 0600
+        owner: "{{ user.vault_snapshot_username }}"
+        group: "{{ user.vault_snapshot_username }}"
+
+    # Copy script that will find Raft leader, create snapshots and keep only the defined number of snapshot files
+    # When number is exceeded script will automatically remove the oldest one from the directory
+    # Snapshot files are encrypted by default and can be decrypted only by the original Vault unseal keys shares
+    - name: Copy Vault Snapshot script
+      ansible.builtin.template:
+        src:  ../templates/main-script.sh.j2
+        dest: "{{ homedir }}/{{ snapshots.script_name }}.sh"
+        force: True
+        mode: 0700
+        owner: "{{ user.vault_snapshot_username }}"
+        group: "{{ user.vault_snapshot_username }}"
+
+    # Add main script described above to the Crontab - it will periodically run the script in cetain time
+    # You can define the time in variables file - by default its at 12 hours (24h format)
+    - name: Add Vault Snaphot script to Crontab
+      cron:
+        name: "Run Vault Snaphot script Hourly"
+        user: "{{ user.vault_snapshot_username }}"
+        job: "{{ homedir }}/{{ snapshots.script_name }}.sh"
+        state: present
+        minute: "{{ snapshots.cron.minute }}"
+        hour: "{{ snapshots.cron.hour }}"
+        day: "{{ snapshots.cron.day }}"
+        month: "{{ snapshots.cron.month }}"
+        weekday: "{{ snapshots.cron.weekday }}"
+      become_user: "{{ user.vault_snapshot_username }}"
+
+
+## Future Feature - Will be Soon!
+    # Optionally turn on ability to backup snapshots to external s3 storage.
+    # You must change the default variables file to make this work. Read the variables file carefuly.
+    - name: Run s3
+      when: s3.enabled == true
+      block:
+
+
+        # --- Start Checking s3cmd Tool Availability ---
+        - name: Ensuring s3cmd tool is installed
+          command:
+            cmd: "s3cmd --version"
+          register: s3cmd_result
+          failed_when: s3cmd_result.rc != 0
+        # --- End Checking s3cmd Tool Availability ---
+
+
+        # --- Start S3 Test Connection ---
+        - name: Test s3 connection on the fly
+          ansible.builtin.command:
+            cmd: "s3cmd info --access_key={{ s3.access_key }} --secret_key={{ s3.secret_key }} --host={{ s3.host }} --host-bucket='%(bucket)s.{{ s3.host }}'"
+          become_user: "{{ user.vault_snapshot_username }}"
+          register: s3_test_con_status
+          failed_when: s3_test_con_status.rc != 0
+        # --- End S3 Test Connection ---
+
+
+        # --- Start S3 Backup Script ---
+        - name: Copy s3 backup bash script
+          ansible.builtin.template:
+            src:  ../templates/s3cmd-backup.sh.j2
+            dest: "{{ homedir }}/{{ s3.backup_script_name }}.sh"
+            force: True
+            mode: 0700
+            owner: "{{ user.vault_snapshot_username }}"
+            group: "{{ user.vault_snapshot_username }}"
+
+        - name: Add the s3 backup script to cron
+          ansible.builtin.cron:
+            name: "Run backups to remote s3 instance every day"
+            user: "{{ user.vault_snapshot_username }}"
+            job: "{{ homedir }}/{{ s3.backup_script_name }}.sh"
+            state: present
+            minute: "{{ s3.cron.minute }}"
+            hour: "{{ s3.cron.hour }}"
+            day: "{{ s3.cron.day }}"
+            month: "{{ s3.cron.month }}"
+            weekday: "{{ s3.cron.weekday }}"
+          become_user: "{{ user.vault_snapshot_username }}"
+        # --- End S3 Backup Script ---
+
+
+        - name: S3 Configured successfully
+          ansible.builtin.debug:
+            msg: "[Info] S3 Configured Successfully"
+
+      rescue:
+        - name: Output detailed s3cmd command failure information for debugging
+          ansible.builtin.debug: # Using `debug` for now, but could use 'log' module for real logging
+            msg: >-
+              [Error] s3cmd tool failed!
+              Return Code: {{ s3cmd_result.rc }}
+              Standard Output: {{ s3cmd_result.stdout }}
+              Standard Error: {{ s3cmd_result.stderr }}
+
+        - name: Fail playbook due to s3cmd error
+          ansible.builtin.fail:
+            msg: "[Critical Error] Playbook execution halted due to s3cmd tool failure. See debug output above for details."
