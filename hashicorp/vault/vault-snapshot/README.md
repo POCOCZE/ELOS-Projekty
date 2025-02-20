@@ -38,7 +38,7 @@ To utilize the Ansible Vault Snapshot and S3 Backup Automation, follow these ste
 
 ### 1. Configure Ansible Inventory (`hosts.ini`)
 
-Ensure your Ansible inventory file (`hosts.ini` or your configured inventory path) is correctly set up to target the Linux host where Vault Raft snapshots will be managed. Define the hostname or IP address of your target machine under a relevant group (e.g., `vault_servers`).
+Ensure your Ansible inventory file (`hosts.ini` or your configured inventory path) is correctly set up to target the Linux host where Vault Raft snapshots will be managed. Define the hostname or IP address of your target machine under a relevant group (e.g., `vault-snapshot`).
 
 ```ini
 [vault-snapshot]
