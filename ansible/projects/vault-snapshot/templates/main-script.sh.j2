@@ -96,6 +96,7 @@ create_raft_snapshot() {
     fi
 }
 
+{% raw %}
 # Function to manage snapshot file retention, ensuring only the MAX_SNAPSHOTS are kept.
 manage_snapshots() {
     log_message "Checking snapshot file count and managing retention."
@@ -121,7 +122,7 @@ manage_snapshots() {
         log_message "Snapshot count is within the limit. No files to delete."
     fi
 }
-
+{% endraw %}
 
 ##################
 ## --- MAIN --- ##
