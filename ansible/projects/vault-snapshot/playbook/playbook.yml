@@ -28,7 +28,7 @@
 
     - name: Set correct permissions to home directory
       ansible.builtin.file:
-        path: "{{ homedir }}"
+        path: "{{ homedir }}/{{ secrets_file.hidden_dir_name }}"
         state: directory
         recurse: True
         force: False
@@ -75,7 +75,7 @@
     # You can define the time in variables file - by default its at 12 hours (24h format)
     - name: Add Vault Snaphot script to Crontab
       cron:
-        name: "Run Vault Snaphot script Hourly"
+        name: "Run Vault Snaphot script"
         user: "{{ user.vault_snapshot_username }}"
         job: "{{ homedir }}/{{ snapshots.script_name }}.sh"
         state: present
