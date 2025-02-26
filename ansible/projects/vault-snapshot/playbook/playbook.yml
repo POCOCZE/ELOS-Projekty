@@ -1,13 +1,26 @@
 ---
 - name: Vault Raft Snapshot Automation Script
   hosts: vault-snapshot
-  become: True
+  become: true
   become_method: sudo
-  gather_facts: False
+  gather_facts: true
   vars_files:
     - ../variables/env.yml
-  tasks:
+  pre_tasks:
+    - name: APT - Install required packages
+      ansible.builtin.apt:
+        name: jq
+        state: present
+      when: ansible_pkg_mgr == "apt"
 
+    - name: DNF - Install required packages
+      ansible.builtin.dnf:
+        name: jq
+        state: present
+      when: ansible_pkg_mgr == "dnf"
+
+
+  tasks:
     # Define basic variables for Ansible Playbook for shorter key definitions
     - name: Set basic facts for user
       ansible.builtin.set_fact:
@@ -30,8 +43,8 @@
       ansible.builtin.file:
         path: "{{ homedir }}/{{ secrets_file.hidden_dir_name }}"
         state: directory
-        recurse: True
-        force: False
+        recurse: true
+        force: false
         mode: 0700
         owner: "{{ user.vault_snapshot_username }}"
         group: "{{ user.vault_snapshot_username }}"
@@ -42,8 +55,8 @@
       ansible.builtin.file:
         path: "{{ homedir }}/{{ snapshots.dir_name }}"
         state: directory
-        recurse: True
-        force: False
+        recurse: true
+        force: false
         mode: 0700
         owner: "{{ user.vault_snapshot_username }}"
         group: "{{ user.vault_snapshot_username }}"
@@ -54,7 +67,7 @@
       ansible.builtin.template:
         src:  ../templates/secrets.json.j2
         dest: "{{ homedir }}/{{ secrets_file.hidden_dir_name }}/{{ secrets_file.json_file_name }}.json"
-        force: True
+        force: true
         mode: 0600
         owner: "{{ user.vault_snapshot_username }}"
         group: "{{ user.vault_snapshot_username }}"
@@ -66,7 +79,7 @@
       ansible.builtin.template:
         src:  ../templates/main-script.sh.j2
         dest: "{{ homedir }}/{{ snapshots.script_name }}.sh"
-        force: True
+        force: true
         mode: 0700
         owner: "{{ user.vault_snapshot_username }}"
         group: "{{ user.vault_snapshot_username }}"
@@ -87,12 +100,26 @@
       become_user: "{{ user.vault_snapshot_username }}"
 
 
-## Future Feature - Will be Soon!
+  ## Future Feature - Will be Soon!
     # Optionally turn on ability to backup snapshots to external s3 storage.
     # You must change the default variables file to make this work. Read the variables file carefuly.
-    - name: Run s3
-      when: s3.enabled == true
+    - name: Run s3 with s3cmd tool
+      when: s3.enabled and not s3.use_alternative_aws_cli
       block:
+
+        # --- Start Installing required packages ---
+        - name: APT - Install S3 related packages
+          ansible.builtin.apt:
+            name: s3cmd
+            state: present
+          when: ansible_pkg_mgr == "apt"
+
+        - name: DNF - Install S3 related packages
+          ansible.builtin.dnf:
+            name: s3cmd
+            state: present
+          when: ansible_pkg_mgr == "dnf"
+        # --- End Installing required packages ---
 
 
         # --- Start Checking s3cmd Tool Availability ---
@@ -119,14 +146,14 @@
           ansible.builtin.template:
             src:  ../templates/s3cmd-backup.sh.j2
             dest: "{{ homedir }}/{{ s3.backup_script_name }}.sh"
-            force: True
+            force: true
             mode: 0700
             owner: "{{ user.vault_snapshot_username }}"
             group: "{{ user.vault_snapshot_username }}"
 
         - name: Add the s3 backup script to cron
           ansible.builtin.cron:
-            name: "Run backups to remote s3 instance every day"
+            name: "Run backups to remote s3 instance"
             user: "{{ user.vault_snapshot_username }}"
             job: "{{ homedir }}/{{ s3.backup_script_name }}.sh"
             state: present
@@ -139,7 +166,7 @@
         # --- End S3 Backup Script ---
 
 
-        - name: S3 Configured successfully
+        - name: S3 Configured successfully using s3cmd tool
           ansible.builtin.debug:
             msg: "[Info] S3 Configured Successfully"
 
@@ -155,3 +182,151 @@
         - name: Fail playbook due to s3cmd error
           ansible.builtin.fail:
             msg: "[Critical Error] Playbook execution halted due to s3cmd tool failure. See debug output above for details."
+
+
+    - name: Run s3 with AWS CLI tool
+      when: s3.enabled and s3.use_alternative_aws_cli
+      block:
+
+        # --- Start Installing required packages ---
+        - name: APT - Install S3 related packages
+          ansible.builtin.apt:
+            name: awscli
+            state: present
+          when: ansible_pkg_mgr == "apt"
+
+        - name: DNF - Install S3 related packages
+          ansible.builtin.dnf:
+            name: awscli
+            state: present
+          when: ansible_pkg_mgr == "dnf"
+        # --- End Installing required packages ---
+
+
+        # --- Start AWS S3 Folder & File Structure Declaration ---
+        - name: Create .aws directory with appropriate permissions and ownership
+          ansible.builtin.file:
+            path: "{{ homedir }}/.aws"
+            state: directory
+            recurse: true
+            force: false
+            mode: 0700
+            owner: "{{ user.vault_snapshot_username }}"
+            group: "{{ user.vault_snapshot_username }}"
+
+        - name: Copy credintials file with into .aws directory
+          ansible.builtin.template:
+            src:  ../templates/aws-cli-credintials.ini.j2
+            dest: "{{ homedir }}/.aws/credintials"
+            force: true
+            mode: 0700
+            owner: "{{ user.vault_snapshot_username }}"
+            group: "{{ user.vault_snapshot_username }}"
+        # --- End AWS S3 Folder Structure Declaration ---
+
+
+        # --- Start Checking AWS CLI Tool Availability & Status ---
+        - name: Ensuring AWS CLI tool is installed
+          ansible.builtin.command:
+            cmd: "aws --version"
+          register: aws_result
+          failed_when: aws_result.rc != 0
+
+        - name: Test aws connection to the S3 object storage
+          ansible.builtin.command:
+            cmd: aws s3 ls
+          register: aws_s3_ls_test_result
+          failed_when: aws_s3_ls_test_result != 0
+        # --- End Checking AWS CLI Tool Availability & Status ---
+
+
+        # --- Start S3 Backup Script ---
+        - name: Copy AWS CLI Sync Script
+          ansible.builtin.template:
+            src: ../templates/aws-cli-backup.sh.j2
+            dest: "{{ homedir }}/{{ s3.backup_script_name }}.sh"
+            force: true
+            mode: 0700
+            owner: "{{ user.vault_snapshot_username }}"
+            group: "{{ user.vault_snapshot_username }}"
+
+        - name: Add the AWS CLI Sync Script To Cron
+          ansible.builtin.cron:
+            name: "Sync Local Folder Into S3 Object Storage"
+            user: "{{ user.vault_snapshot_username }}"
+            job: "{{ homedir }}/{{ s3.backup_script_name }}.sh"
+            state: present
+            minute: "{{ s3.cron.minute }}"
+            hour: "{{ s3.cron.hour }}"
+            day: "{{ s3.cron.day }}"
+            month: "{{ s3.cron.month }}"
+            weekday: "{{ s3.cron.weekday }}"
+          become_user: "{{ user.vault_snapshot_username }}"
+        # --- End S3 Backup Script ---
+
+
+        - name: S3 Configured successfully using AWS CLI Tool
+          ansible.builtin.debug:
+            msg: "[Info] S3 Configured Successfully"
+
+      rescue:
+        - name: Output detailed s3cmd command failure information for debugging
+          ansible.builtin.debug: # Using `debug` for now, but could use 'log' module for real logging
+            msg: >-
+              [Error] s3cmd tool failed!
+              Return Code: {{ s3cmd_result.rc }}
+              Standard Output: {{ s3cmd_result.stdout }}
+              Standard Error: {{ s3cmd_result.stderr }}
+
+        - name: Fail playbook due to AWS CLI error
+          ansible.builtin.fail:
+            msg: "[Critical Error] Playbook execution halted due to AWS CLI tool failure. See debug output above for details."
+
+  post_tasks:
+    # --- Start Remove s3cmd package when using AWS CLI alternative
+    - name: APT - Remove unnecassary packages
+      ansible.builtin.apt:
+        name: s3cmd
+        state: absent
+      when: ansible_pkg_mgr == "apt" and s3.enabled and s3.use_alternative_aws_cli
+
+    - name: DNF - Remove unnecassary packages
+      ansible.builtin.dnf:
+        name: s3cmd
+        state: absent
+      when: ansible_pkg_mgr == "dnf" and s3.enabled and s3.use_alternative_aws_cli
+    # --- End Remove s3cmd package when using AWS CLI alternative
+
+
+    # --- Start Remove AWS CLI package when using s3cmd
+    - name: APT - Remove unnecassary packages
+      ansible.builtin.apt:
+        name: awscli
+        state: absent
+      when: ansible_pkg_mgr == "apt" and s3.enabled and not s3.use_alternative_aws_cli
+
+    - name: DNF - Remove unnecassary packages
+      ansible.builtin.dnf:
+        name: awscli
+        state: absent
+      when: ansible_pkg_mgr == "dnf" and s3.enabled and not s3.use_alternative_aws_cli
+    # --- End Remove AWS CLI package when using s3cmd
+
+
+    # --- Start Remove s3cmd and AWS CLI package when not using s3 at all
+    - name: APT - Remove unnecassary packages
+      ansible.builtin.apt:
+        name:
+          - s3cmd
+          - awscli
+        state: absent
+      when: ansible_pkg_mgr == "apt" and not s3.enabled
+
+    - name: DNF - Remove unnecassary packages
+      ansible.builtin.dnf:
+        name:
+          - s3cmd
+          - awscli
+        state: absent
+      when: ansible_pkg_mgr == "dnf" and not s3.enabled
+    # --- Start Remove s3cmd and AWS CLI package when not using s3 at all
