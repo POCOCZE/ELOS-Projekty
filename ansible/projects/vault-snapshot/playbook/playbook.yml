@@ -214,10 +214,10 @@
             owner: "{{ user.vault_snapshot_username }}"
             group: "{{ user.vault_snapshot_username }}"
 
-        - name: Copy credintials file with into .aws directory
+        - name: Copy credentials file with into .aws directory
           ansible.builtin.template:
-            src:  ../templates/aws-cli-credintials.ini.j2
-            dest: "{{ homedir }}/.aws/credintials"
+            src:  ../templates/aws-cli-credentials.ini.j2
+            dest: "{{ homedir }}/.aws/credentials"
             force: true
             mode: 0700
             owner: "{{ user.vault_snapshot_username }}"
@@ -234,9 +234,10 @@
 
         - name: Test aws connection to the S3 object storage
           ansible.builtin.command:
-            cmd: aws s3 ls
+            cmd: aws s3 ls --profile {{ user.vault_snapshot_username }}
           register: aws_s3_ls_test_result
-          failed_when: aws_s3_ls_test_result != 0
+          become_user: "{{ user.vault_snapshot_username }}"
+          failed_when: aws_s3_ls_test_result.rc != 0
         # --- End Checking AWS CLI Tool Availability & Status ---
 
 
