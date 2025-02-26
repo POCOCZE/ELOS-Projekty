@@ -12,7 +12,8 @@
 BUCKET_NAME="{{ s3.bucket_name }}"
 # Path to the local folder containing snapshots (e.g., testing-bucket-snapshot)
 LOCAL_FOLDER="{{ homedir }}/{{ snapshots.dir_name }}"
-
+# 
+AWS_S3_PROFILE_NAME="--profile {{ user.vault_snapshot_username }}"
 # --- Optional feature ---
 # Enables ability to delete files on S3 if they are removed locally
 S3_DELETION_ON_LOCAL_REMOVAL="{{ s3.deletion_on_local_removal.enabled }}" # Ansible variable: Boolean to enable deletion of files on S3 that are removed locally. Defaults to 'false'.
@@ -38,9 +39,9 @@ log_message() {
 # Function to check if the S3 bucket exists and create it if it doesn't.
 ensure_bucket_exists() {
     log_message "--- Checking if bucket 's3://${BUCKET_NAME}' exists ---"
-    if ! aws s3 ls "s3://${BUCKET_NAME}/" > /dev/null 2>&1; then
+    if ! aws s3 ls $AWS_S3_PROFILE_NAME "s3://${BUCKET_NAME}/" > /dev/null 2>&1; then
         log_message "Bucket 's3://${BUCKET_NAME}' does not exist. Attempting to create it."
-        aws s3 mb "s3://${BUCKET_NAME}/"
+        aws s3 mb $AWS_S3_PROFILE_NAME "s3://${BUCKET_NAME}/"
         if [ $? -ne 0 ]; then
             log_message "Error: Failed to create bucket 's3://${BUCKET_NAME}'."
             log_message "Please ensure you have permissions to create buckets and check AWS CLI configuration."
@@ -92,9 +93,10 @@ log_message "Syncing local folder '${LOCAL_FOLDER}' to s3://${BUCKET_NAME}/ at $
 # The 'sync' command efficiently updates the S3 bucket to match the local folder.
 # The '--delete' option, if enabled, ensures that files removed from the local folder are also deleted from the S3 bucket.
 aws s3 sync \
-    "${DELETE_FLAG}" \
-    "${LOCAL_FOLDER}" \
-    "s3://${BUCKET_NAME}/"
+    ${AWS_S3_PROFILE_NAME} \
+    ${DELETE_FLAG} \
+    ${LOCAL_FOLDER} \
+    s3://${BUCKET_NAME}
 
 # Check the exit status of the aws s3 sync command to determine if the sync was successful.
 if [ $? -ne 0 ]; then
