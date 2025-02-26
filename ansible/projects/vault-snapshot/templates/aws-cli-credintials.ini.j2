@@ -1,0 +1,8 @@
+[vault-backup]
+aws_access_key_id = {{ s3.access_key }}
+aws_secret_access_key = {{ s3.secret_key }}
+{% if s3.use_https %}
+endpoint_url = https://{{ s3.host }}
+{% else %}
+endpoint_url = http://{{ s3.host }}
+{% endif %}
