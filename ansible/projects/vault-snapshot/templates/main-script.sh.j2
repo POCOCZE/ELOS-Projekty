@@ -2,8 +2,8 @@
 # --- Script Info ---
 # Automatically find Vault raft leader and snapshot current state to .snap file
 # By: simon
-# Date: 17/2/2025
-# Last tested: 7/2/2025
+# Date: 24/2/2025
+# Last tested: 21/2/2025
 
 
 ##################################
@@ -24,6 +24,10 @@ VAULT_SKIP_VERIFY="{{ vault_settings.vault_skip_verify }}"
 # --- Snapshots Configuration ---
 # Location where snapshots will be saved. Must be writable by the user running this script.
 SNAPSHOT_LOCATION="{{ homedir }}/{{ snapshots.dir_name }}"
+# Number of retries for snapshot creation
+SNAPSHOT_RETRIES="{{ snapshots.snapshot_retries }}"
+# Delay in seconds between retries
+SNAPSHOT_RETRY_DELAY="{{ snapshots.snapshot_retry_delay }}"
 # Generic name for snapshot files, date and time will be appended.
 SNAPSHOT_NAME_PREFIX="{{ snapshots.file_prefix_name }}"
 # Maximum number of snapshot files to keep. Older snapshots will be deleted to maintain this limit.
@@ -78,7 +82,7 @@ gather_leader_from_raft() {
 }
 
 # Function to create a Raft snapshot and save it to the snapshot location.
-create_raft_snapshot() {
+{# create_raft_snapshot() {
     cd "$SNAPSHOT_LOCATION" || {
         log_message "ERROR: Could not change directory to snapshot location: $SNAPSHOT_LOCATION. Check permissions and path."
         return 1 # Indicate failure
@@ -94,6 +98,41 @@ create_raft_snapshot() {
         log_message "Successfully created Raft snapshot: $snapshot_filename"
         return 0 # Indicate success
     fi
+} #}
+
+
+# Function to create a Raft snapshot with retry mechanism
+create_raft_snapshot() {
+    local retry_count="${SNAPSHOT_RETRIES}"
+    local retry_delay="${SNAPSHOT_RETRY_DELAY}"
+    local attempt=1
+
+    cd "$SNAPSHOT_LOCATION" || {
+        log_message "ERROR: Could not change directory to snapshot location: $SNAPSHOT_LOCATION. Check permissions and path."
+        return 1 # Indicate failure
+    }
+
+    local snapshot_filename="${SNAPSHOT_NAME_PREFIX}-$(date +'%Y-%m-%d-%H-%M').snap"
+
+    while [ "$attempt" -le "$retry_count" ]; do
+        log_message "Attempting to create Raft snapshot (attempt $attempt of $retry_count)..."
+        vault operator raft snapshot save "$snapshot_filename"
+
+        if [ $? -eq 0 ]; then
+            log_message "Successfully created Raft snapshot: $snapshot_filename"
+            return 0 # Indicate success
+        else
+            log_message "ERROR: Failed to create Raft snapshot on attempt $attempt. Exit code: $?. "
+            if [ "$attempt" -lt "$retry_count" ]; then
+                log_message "Waiting $retry_delay seconds before retrying..."
+                sleep "$retry_delay"
+            else
+                log_message "ERROR: Maximum retry attempts reached. Snapshot creation failed."
+                return 1 # Indicate failure after all retries
+            fi
+        fi
+        attempt=$((attempt + 1))
+    done
 }
 
 {% raw %}
