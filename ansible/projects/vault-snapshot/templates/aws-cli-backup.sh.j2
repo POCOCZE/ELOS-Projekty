@@ -1,0 +1,117 @@
+#!/bin/bash
+# --- Script Info ---
+# This script syncs a local folder to an S3 bucket using AWS CLI.
+# It assumes AWS CLI is configured with credentials and endpoint URL.
+
+##################################
+## --- SCRIPT CONFIGURATION --- ##
+##################################
+
+# --- S3 Bucket and Local Folder settings ---
+# Name of the S3 bucket to sync to (e.g., snapshots)
+BUCKET_NAME="{{ s3.bucket_name }}"
+# Path to the local folder containing snapshots (e.g., testing-bucket-snapshot)
+LOCAL_FOLDER="{{ homedir }}/{{ snapshots.dir_name }}"
+
+# --- Optional feature ---
+# Enables ability to delete files on S3 if they are removed locally
+S3_DELETION_ON_LOCAL_REMOVAL="{{ s3.deletion_on_local_removal.enabled }}" # Ansible variable: Boolean to enable deletion of files on S3 that are removed locally. Defaults to 'false'.
+
+
+##################################
+## --- END OF CONFIGURATION --- ##
+##################################
+
+
+#######################
+## --- FUNCTIONS --- ##
+#######################
+
+# Function to log messages with a timestamp using journalctl.
+# It uses the 'logger' command to send the message to journalctl with the tag 'snapshot-sync'.
+log_message() {
+    local message="$1"
+    timestamp=$(date -I --utc --date='now') # Get current UTC date and time in ISO 8601 format
+    logger -t snapshot-sync "[$timestamp] $message"
+}
+
+# Function to check if the S3 bucket exists and create it if it doesn't.
+ensure_bucket_exists() {
+    log_message "--- Checking if bucket 's3://${BUCKET_NAME}' exists ---"
+    if ! aws s3 ls "s3://${BUCKET_NAME}/" > /dev/null 2>&1; then
+        log_message "Bucket 's3://${BUCKET_NAME}' does not exist. Attempting to create it."
+        aws s3 mb "s3://${BUCKET_NAME}/"
+        if [ $? -ne 0 ]; then
+            log_message "Error: Failed to create bucket 's3://${BUCKET_NAME}'."
+            log_message "Please ensure you have permissions to create buckets and check AWS CLI configuration."
+            log_message "Script execution aborted due to bucket creation failure."
+            exit 1
+        else
+            log_message "Bucket 's3://${BUCKET_NAME}' created successfully."
+        fi
+    else
+        log_message "Bucket 's3://${BUCKET_NAME}' already exists. Proceeding."
+    fi
+    log_message "--- Bucket check completed ---"
+}
+
+
+##################
+## --- MAIN --- ##
+##################
+
+# Ensure script will exit on any error
+set -e
+
+# Initialize logging and write script start message to journalctl
+log_message "# -------------------------------------------------------------------"
+log_message "# Snapshot Sync Script Execution Started"
+log_message "# Date: $(date -I --utc --date='now')"
+log_message "# -------------------------------------------------------------------"
+
+# --- Ensure Bucket Exists ---
+ensure_bucket_exists
+
+# --- Start Conditional Option for Deleting Files on S3 ---
+# If true, append the '--delete' option to aws s3 sync.
+# The double `,,` comma perform CASE-INsensitive string comparisons by converting the variable's value to lowercase before the comparison
+if [[ "${S3_DELETION_ON_LOCAL_REMOVAL,,}" == "true" ]]; then
+    DELETE_FLAG="--delete" # Set DELETE_FLAG to "--delete" to enable deletion
+    log_message "Option '--delete' is enabled. Files deleted locally will also be deleted from S3."
+else
+    log_message "Option '--delete' is disabled. Files deleted locally will be preserved on S3."
+fi
+# --- End Conditional Option for Deleting Files on S3 ---
+
+
+# --- Start Sync Local Folder to S3 Bucket ---
+log_message "--- Starting sync process ---"
+log_message "Syncing local folder '${LOCAL_FOLDER}' to s3://${BUCKET_NAME}/ at $(date '+%Y-%m-%d %H:%M:%S')"
+
+# Sync the local folder to the S3 bucket using aws s3 sync.
+# The 'sync' command efficiently updates the S3 bucket to match the local folder.
+# The '--delete' option, if enabled, ensures that files removed from the local folder are also deleted from the S3 bucket.
+aws s3 sync \
+    "${DELETE_FLAG}" \
+    "${LOCAL_FOLDER}" \
+    "s3://${BUCKET_NAME}/"
+
+# Check the exit status of the aws s3 sync command to determine if the sync was successful.
+if [ $? -ne 0 ]; then
+    log_message "Error: Sync failed at $(date '+%Y-%m-%d %H:%M:%S')."
+    log_message "Please check the aws s3 output in journalctl for more details or run script with verbosity for more details."
+    log_message "Script execution aborted due to sync failure."
+    exit 1
+fi
+
+log_message "--- Sync process completed successfully ---"
+log_message "Sync completed successfully at $(date '+%Y-%m-%d %H:%M:%S')."
+# --- End Sync Local Folder to S3 Bucket ---
+
+
+log_message "# -------------------------------------------------------------------"
+log_message "# Snapshot Sync Script Execution Completed Successfully"
+log_message "# Date: $(date -I --utc --date='now')"
+log_message "# -------------------------------------------------------------------"
+
+exit 0
