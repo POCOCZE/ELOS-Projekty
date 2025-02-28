@@ -144,7 +144,7 @@ journalctl -t snapshot-sync
 root@ubuntu-ansible:~/ELOS-Projekty/ansible# ansible-playbook -i hosts.ini projects/vault-snapshot/playbook/playbook.yml -Kk -v
 ```
 
-```json
+```log
 Using /root/ELOS-Projekty/ansible/ansible.cfg as config file
 SSH password: 
 BECOME password[defaults to SSH password]: 
