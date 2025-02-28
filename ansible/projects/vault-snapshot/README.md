@@ -257,6 +257,7 @@ localhost                  : ok=18   changed=8    unreachable=0    failed=0    s
 
 ### Journalctl Output
 
+```log
 Feb 20 20:28:01 ubuntu-ansible vault-snapshot[11536]: [2025-02-20] # -------------------------------------------------------------------
 Feb 20 20:28:01 ubuntu-ansible vault-snapshot[11538]: [2025-02-20] # Vault Raft Snapshot Script Execution Started
 Feb 20 20:28:01 ubuntu-ansible vault-snapshot[11541]: [2025-02-20] # Date: 2025-02-20
@@ -276,6 +277,7 @@ Feb 20 20:28:01 ubuntu-ansible vault-snapshot[11591]: [2025-02-20] # -----------
 Feb 20 20:28:01 ubuntu-ansible vault-snapshot[11593]: [2025-02-20] # Vault Raft Snapshot Script Execution Completed Successfully
 Feb 20 20:28:01 ubuntu-ansible vault-snapshot[11596]: [2025-02-20] # Date: 2025-02-20
 Feb 20 20:28:01 ubuntu-ansible vault-snapshot[11598]: [2025-02-20] # -------------------------------------------------------------------
+```
 
 ## TODO
 
